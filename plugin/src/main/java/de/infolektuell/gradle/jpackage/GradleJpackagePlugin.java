@@ -42,21 +42,23 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
         extension.getRuntime().getJpackage().convention(true);
 
         project.getPluginManager().withPlugin("application", applicationPlugin -> {
-            JavaPluginExtension java = project.getExtensions().findByType(JavaPluginExtension.class);
-            if (java != null) {
-                JavaToolchainSpec defaultToolchain = java.getToolchain();
-                extension.getToolchain().convention(defaultToolchain);
-            }
+            JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
+            JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
+            JavaToolchainSpec defaultToolchain = java.getToolchain();
+            extension.getToolchain().convention(defaultToolchain);
+            extension.getMetadata().getName().convention(application.getApplicationName());
+            extension.getMetadata().getAppVersion().convention(project.getVersion().toString());
+            extension.getMetadata().getDescription().convention(project.getDescription());
+            extension.getMetadata().getVendor().convention(project.getGroup().toString());
+
             var installationPath = extension.getToolchain()
                 .flatMap(getJavaToolchainService()::compilerFor)
                 .map(it -> it.getMetadata().getInstallationPath());
+
             var jlinkTask = project.getTasks().register("jlink", JlinkTask.class, task -> {
-                task.setGroup("Distribution");
                 task.setDescription("Generates a customized runtime image");
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jlink")));
-                if (java != null) {
-                    task.getModulePath().from(java.getSourceSets().named("main").map(SourceSet::getRuntimeClasspath));
-                }
+                task.getModulePath().from(java.getSourceSets().named("main").map(SourceSet::getRuntimeClasspath));
                 task.getAddModules().convention(extension.getRuntime().getModules());
                 task.getNoHeaderFiles().convention(extension.getRuntime().getJpackage());
                 task.getNoManPages().convention(extension.getRuntime().getJpackage());
@@ -64,39 +66,40 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getStripNativeCommands().convention(extension.getRuntime().getJpackage());
                 task.getOutput().convention(project.getLayout().getBuildDirectory().dir("jpackage/runtime"));
             });
-            project.getTasks().register("jpackage", JpackageTask.class, task -> {
-                task.setGroup("Distribution");
-                task.setDescription("Generates a native app installer");
+
+            project.getTasks().withType(JpackageTask.class, task -> {
                 task.getMetadata().convention(extension.getMetadata());
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jpackage")));
                 task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));
             });
 
-            JavaApplication application = project.getExtensions().findByType(JavaApplication.class);
-            if (application != null) {
-                extension.getMetadata().getName().convention(application.getApplicationName());
-                extension.getMetadata().getAppVersion().convention(project.getVersion().toString());
-                extension.getMetadata().getDescription().convention(project.getDescription());
-                extension.getMetadata().getVendor().convention(project.getGroup().toString());
-                project.getTasks().withType(JpackageTask.class, task -> {
-                    if (application.getMainModule().isPresent()) {
-                        var modular = project.getObjects().newInstance(JpackageModularOptions.class);
-                        modular.getModuleName().convention(application.getMainModule());
-                        modular.getClassName().convention(application.getMainClass());
-                        task.getModularity().convention(modular);
-                    } else {
-                        var nonModular = project.getObjects().newInstance(JpackageNonModularOptions.class);
-                        TaskProvider<@NonNull Sync> installDist = project.getTasks().withType(Sync.class).named("installDist");
-                        var input = installDist.map(i -> project.getLayout().getProjectDirectory().dir(i.getDestinationDir().getAbsolutePath()).dir("lib"));
-                        nonModular.getInput().convention(input);
-                        TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");
-                        nonModular.getMainJar().convention(jarTask.flatMap(AbstractArchiveTask::getArchiveFile));
-                        nonModular.getMainClass().convention(application.getMainClass());
-                        task.getModularity().convention(nonModular);
-                    }
-                });
-            }
+            var nonModularJpackageTask = project.getTasks().register("jpackageNonModular", JpackageTask.class, task -> {
+                task.onlyIf(spec -> !application.getMainModule().isPresent());
+                task.setDescription("Generates a native installer for a non-modular app");
+                var nonModular = project.getObjects().newInstance(JpackageNonModularOptions.class);
+                TaskProvider<@NonNull Sync> installDist = project.getTasks().withType(Sync.class).named("installDist");
+                var input = installDist.map(i -> project.getLayout().getProjectDirectory().dir(i.getDestinationDir().getAbsolutePath()).dir("lib"));
+                nonModular.getInput().convention(input);
+                TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");
+                nonModular.getMainJar().convention(jarTask.flatMap(AbstractArchiveTask::getArchiveFile));
+                nonModular.getMainClass().convention(application.getMainClass());
+                task.getModularity().convention(nonModular);
+            });
+
+            var modularJpackageTask = project.getTasks().register("jpackageModular", JpackageTask.class, task -> {
+                task.onlyIf(spec -> application.getMainModule().isPresent());
+                task.setDescription("Generates a native installer for a modular app");
+                var modular = project.getObjects().newInstance(JpackageModularOptions.class);
+                modular.getModuleName().convention(application.getMainModule());
+                modular.getClassName().convention(application.getMainClass());
+                task.getModularity().convention(modular);
+            });
+            project.getTasks().register("jpackage", task -> {
+                task.setGroup("Distribution");
+                task.setDescription("Generates a native app installer");
+                task.dependsOn(nonModularJpackageTask, modularJpackageTask);
+            });
         });
     }
 }
