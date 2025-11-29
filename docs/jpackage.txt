@@ -1,0 +1,233 @@
+Verwendung: jpackage <Optionen>
+
+Beispielverwendungen:
+--------------
+    Generiert ein für das Hostsystem geeignetes Anwendungspackage:
+        Für eine modulare Anwendung:
+            jpackage -n name -p modulePath -m moduleName/className
+        Für eine nicht modulare Anwendung:
+            jpackage -i inputDir -n name \
+                --main-class className --main-jar myJar.jar
+        Aus einem vorab erstellten Anwendungsimage:
+            jpackage -n name --app-image appImageDir
+    Generiert ein Anwendungsimage:
+        Für eine modulare Anwendung:
+            jpackage --type app-image -n name -p modulePath \
+                -m moduleName/className
+        Für eine nicht modulare Anwendung:
+            jpackage --type app-image -i inputDir -n name \
+                --main-class className --main-jar myJar.jar
+        Um eigene Optionen für jlink anzugeben, führen Sie jlink separat aus:
+            jlink --output appRuntimeImage -p modulePath \
+                --add-modules moduleName \
+                --no-header-files [<zusätzliche jlink-Optionen>...]
+            jpackage --type app-image -n name \
+                -m moduleName/className --runtime-image appRuntimeImage
+    Generiert ein Java Runtime-Package:
+        jpackage -n name --runtime-image <Laufzeitimage>
+    Vordefiniertes Anwendungsimage signieren:
+        jpackage --type app-image --app-image <app-image> \
+            --mac-sign [<additional signing options>...]
+        Hinweis: In diesem Modus sind nur die folgenden zusätzlichen Optionen zulässig:
+              Das Set der zusätzlichen Mac-Signaturoptionen und --verbose
+
+Allgemeine Optionen:
+  @<Dateiname > 
+          Liest Optionen und/oder Modus aus einer Datei 
+          Diese Option kann mehrmals verwendet werden.
+  --type -t <Typ> 
+          Der zu erstellende Packagetyp
+          Gültige Werte: {"app-image", "dmg", "pkg"} 
+          Bei fehlender Angabe dieser Option wird ein plattformabhängiger
+          Standardtyp erstellt.
+  --app-version <Version>
+          Version der Anwendung und/oder des Packages
+  --copyright <Copyright-Zeichenfolge>
+          Copyright für die Anwendung
+  --description <Zeichenfolge für Beschreibung>
+          Beschreibung der Anwendung
+  --help -h 
+          Gibt den Verwendungstext mit einer Liste und Beschreibung jeder gültigen
+          Option für die aktuelle Plattform an den Ausgabestream aus und beendet den Vorgang
+  --icon <Dateipfad>
+          Pfad des Symbols für das Anwendungspackage
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+  --name -n <Name>
+          Name der Anwendung und/oder des Packages
+  --dest -d <Zielpfad>
+          Pfad, in den die generierte Ausgabedatei abgelegt wird
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Standardmäßig wird das aktuelle Arbeitsverzeichnis verwendet.
+  --temp <Verzeichnispfad>
+          Pfad eines neuen oder leeren Verzeichnisses zum Erstellen temporärer Dateien
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Falls angegeben, wird das temporäre Verzeichnis beim Abschließen der Aufgabe
+          nicht entfernt und muss manuell entfernt werden.
+          Bei fehlender Angabe wird ein temporäres Verzeichnis erstellt und
+          beim Abschließen der Aufgabe entfernt.
+  --vendor <Zeichenfolge für Anbieter>
+          Anbieter der Anwendung
+  --verbose
+          Aktiviert Ausgabe im Verbose-Modus
+  --version
+          Gibt die Produktversion an den Outputstream aus und beendet den Vorgang.
+
+Optionen für das Erstellen des Laufzeitimages:
+  --add-modules <Modulname>[,<Modulname>...]
+          Eine per Komma (",") getrennte Liste hinzuzufügender Module
+          Diese Modulliste wird zusammen mit dem Hauptmodul (sofern angegeben)
+          als Argument --add-module an jlink übergeben.
+          Bei fehlender Angabe wird entweder nur das Hauptmodul (sofern --module
+          angegeben ist) oder das Standardset an Modulen (sofern --main-jar 
+          angegeben ist) verwendet.
+          Diese Option kann mehrmals verwendet werden.
+  --module-path -p <Modulpfad>...
+          Eine per : getrennte Pfadliste
+          Jeder Pfad ist entweder ein Verzeichnis mit Modulen oder der Pfad zu einer
+          JAR-Datei eines Moduls.
+          (Jeder Pfad ist absolut oder relativ zum aktuellen Verzeichnis.)
+          Diese Option kann mehrmals verwendet werden.
+  --jlink-options <jlink-Optionen> 
+          Eine per Leerzeichen getrennte Liste mit an jlink zu übergebenden Optionen 
+          Bei fehlender Angabe wird standardmäßig "--strip-native-commands 
+          --strip-debug --no-man-pages --no-header-files" verwendet. 
+          Diese Option kann mehrmals verwendet werden.
+  --runtime-image <Verzeichnispfad>
+          Pfad des vordefinierten Laufzeitimages, das in
+          das Anwendungsimage kopiert wird
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Wenn --runtime-image nicht angegeben wird, führt jpackage jlink aus, um
+          das Laufzeitimage mit folgenden Optionen zu erstellen:
+          --strip-debug, --no-header-files, --no-man-pages und
+          --strip-native-commands.
+
+Optionen für das Erstellen des Anwendungsimages:
+  --input -i <Verzeichnispfad>
+          Pfad des Eingabeverzeichnisses mit den zu verpackenden Dateien
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Alle Dateien im Eingabeverzeichnis werden verpackt für das
+          Anwendungsimage integriert.
+  --app-content <zusätzlicher Inhalt>[,<zusätzlicher Inhalt>...]
+          Eine per Komma getrennte Liste mit Pfaden zu Dateien und/oder Verzeichnissen,
+          die zur Anwendungs-Payload hinzugefügt werden sollen.
+          Diese Option kann mehrmals verwendet werden.
+
+Optionen für das Erstellen des Anwendungs-Launchers:
+  --add-launcher <Launcher-Name>=<Dateipfad>
+          Name des Launchers sowie ein Pfad zu einer Eigenschaftendatei mit
+          einer Liste von Schlüssel/Wert-Paaren
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Die Schlüssel "module", "main-jar", "main-class", "description",
+          "arguments", "java-options", "app-version", "icon",
+          "launcher-as-service",
+          "win-console", "win-shortcut", "win-menu",
+          "linux-app-category" und "linux-shortcut" können verwendet werden.
+          Diese Optionen werden den ursprünglichen Befehlszeilenoptionen hinzugefügt
+          (oder überschreiben diese), um einen zusätzlichen, alternativen Launcher zu erstellen.
+          Der Hauptanwendungs-Launcher wird aus den Befehlszeilenoptionen
+          erstellt. Mit dieser Option können zusätzliche alternative Launcher
+          erstellt werden. Außerdem kann diese Option mehrmals verwendet werden,
+          um mehrere zusätzliche Launcher zu erstellen. 
+  --arguments <Hauptklassenargumente>
+          Befehlszeilenargumente, die an die Hauptklasse übergeben werden, falls
+          keine Befehlszeilenargumente an den Launcher übergeben werden
+          Diese Option kann mehrmals verwendet werden.
+  --java-options <Java-Optionen>
+          Optionen, die an Java Runtime übergeben werden
+          Diese Option kann mehrmals verwendet werden.
+  --main-class <Klassenname>
+          Qualifizierter Name der auszuführenden Anwendungshauptklasse
+          Diese Option kann nur bei Angabe von --main-jar verwendet werden.
+  --main-jar <Haupt-JAR-Datei>
+          Die Haupt-JAR-Datei der Anwendung, die die Hauptklasse enthält
+          (angegeben als Pfad relativ zum Eingabepfad)
+          Es kann entweder die Option --module oder die Option --main-jar angegeben werden, nicht jedoch
+          beides.
+  --module -m <Modulname>[/<Hauptklasse>]
+          Das Hauptmodul (und optional die Hauptklasse) der Anwendung
+          Dieses Modul muss unter dem Modulpfad gespeichert sein.
+          Bei Angabe dieser Option wird das Hauptmodul
+          im Java Runtime-Image verknüpft. Es kann entweder die Option --module oder die Option --main-jar
+          angegeben werden, nicht jedoch beides.
+  --mac-package-identifier <ID-Zeichenfolge>
+          Eine ID, die die Anwendung für macOS eindeutig identifiziert
+          Standardwert ist der Hauptklassenname.
+          Es dürfen nur alphanumerische Zeichen (A-Z, a-z, 0-9), Bindestriche (-)
+          und Punkte (.) verwendet werden.
+  --mac-package-name <Namenszeichenfolge>
+          Name der Anwendung, wie in der Menüleiste angezeigt
+          Dieser kann vom Anwendungsnamen abweichen.
+          Er darf maximal 15 Zeichen enthalten und muss für die Anzeige
+          in der Menüleiste und im Infofenster der Anwendung geeignet sein.
+          Standardwert: Anwendungsname.
+  --mac-package-signing-prefix <Präfixzeichenfolge>
+          Beim Signieren des Anwendungspackages wird dieser Wert
+          allen zu signierenden Komponenten ohne vorhandene
+          Package-ID als Präfix vorangestellt.
+  --mac-sign
+          Anforderung zum Signieren des Packages oder des vordefinierten
+Anwendungsimages
+  --mac-signing-keychain <Schlüsselbundname>
+          Name des Schlüsselbundes für die Suche nach der Signaturidentität
+          Bei fehlender Angabe werden die Standardschlüsselbunde verwendet.
+  --mac-signing-key-user-name <Teamname>
+          Team- oder Benutzernamensteil der Apple-Signaturidentitäten. Um direkt zu steuern,
+          welche Signaturidentität zum Signieren eines Anwendungsimages oder
+          Installationsprogramms verwendet wird, verwenden Sie --mac-app-image-sign-identity und/oder
+          --mac-installer-sign-identity. Diese Option kann nicht mit
+          --mac-app-image-sign-identity oder --mac-installer-sign-identity kombiniert werden.
+  --mac-app-image-sign-identity <identity>
+          Zum Signieren des Anwendungsimages verwendete Identität. Dieser Wert wird
+          direkt an die Option --sign des Tools "codesign" übergeben. Diese Option kann nicht
+          mit --mac-signing-key-user-name kombiniert werden.
+  --mac-installer-sign-identity <identity>
+          Zum Signieren des Installationsprogramms "pkg" verwendete Identität. Dieser Wert wird
+          direkt an die Option --sign des Tools "productbuild" übergeben. Diese Option
+          kann nicht mit --mac-signing-key-user-name kombiniert werden.
+  --mac-app-store
+          Gibt an, dass die jpackage-Ausgabe für den
+          Mac App Store bestimmt ist.
+  --mac-entitlements <Dateipfad>
+          Pfad zu einer Datei mit Berechtigungen, die beim Signieren
+          von ausführbaren Dateien und Librarys im Bundle verwendet werden sollen.
+  --mac-app-category <Kategoriezeichenfolge>
+          Zeichenfolge für das Erstellen von LSApplicationCategoryType in
+          Anwendungs-plist. Standardwert: "utilities".
+
+Optionen für das Erstellen des Anwendungspackages:
+  --about-url <URL>
+          URL der Homepage der Anwendung
+  --app-image <Verzeichnispfad>
+          Speicherort des vordefinierten Anwendungsimages, mit dem
+          ein installierbares Package erstellt oder das vordefinierte
+          Anwendungsimage signiert wird
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+  --file-associations <Dateipfad>
+          Pfad zu einer Eigenschaftendatei mit einer Liste von Schlüssel/Wert-Paaren
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Mit den Schlüsseln "extension", "mime-type", "icon" und "description"
+          kann die Verknüpfung beschrieben werden.
+          Diese Option kann mehrmals verwendet werden.
+  --install-dir <Verzeichnispfad>
+          Absoluter Pfad des Installationsverzeichnisses der Anwendung
+  --license-file <Dateipfad>
+          Pfad zur Lizenzdatei
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+  --resource-dir <Verzeichnispfad>
+          Pfad zum Überschreiben von jpackage-Ressourcen
+          Symbole, Vorlagendateien und weitere Ressourcen von jpackage können
+          durch Hinzufügen von Ersetzungsressourcen zu diesem Verzeichnis überschrieben werden.
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+  --runtime-image <Verzeichnispfad>
+          Pfad des zu installierenden vordefinierten Laufzeitimages
+          (absoluter Pfad oder relativ zum aktuellen Verzeichnis)
+          Option muss beim Erstellen eines Laufzeitpackages angegeben werden.
+  --launcher-as-service
+          Anforderung zum Erstellen eines Installationsprogramms, das den
+          Hauptanwendungs-Launcher als Hintergrundserviceanwendung registriert.
+
+Plattformabhängige Optionen für das Erstellen des Anwendungspackages:
+  --mac-dmg-content <Pfad zu zusätzlichem Inhalt>[,<Pfad zu zusätzlichem Inhalt>...]
+          Nimmt den gesamten referenzierten Inhalt in die DMG-Datei auf.
+          Diese Option kann mehrmals verwendet werden. 
+
