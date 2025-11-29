@@ -1,6 +1,7 @@
-package de.infolektuell.gradle.jpackaging.tasks;
+package de.infolektuell.gradle.jpackage.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.RegularFileProperty;
@@ -8,9 +9,10 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 import org.gradle.process.ExecOperations;
-import org.jspecify.annotations.*;
+import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.io.Serial;
 import java.io.Serializable;
 
@@ -24,13 +26,15 @@ public abstract class JlinkTask extends DefaultTask {
     private final ExecOperations execOperations;
     private final FileSystemOperations fileSystemOperations;
 
-    /** The jpackage executable to run */
+    /**
+     * The jpackage executable to run
+     */
     @InputFile
     public abstract RegularFileProperty getExecutable();
 
     @Optional
-    @InputDirectory
-    public abstract DirectoryProperty getModulePath();
+    @InputFiles
+    public abstract ConfigurableFileCollection getModulePath();
 
     @Optional
     @Input
@@ -64,6 +68,10 @@ public abstract class JlinkTask extends DefaultTask {
     @Input
     public abstract Property<@NonNull Boolean> getStripDebug();
 
+    @Optional
+    @Input
+    public abstract Property<@NonNull Boolean> getStripNativeCommands();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutput();
 
@@ -81,6 +89,9 @@ public abstract class JlinkTask extends DefaultTask {
         fileSystemOperations.delete(spec -> spec.delete(getOutput()));
         execOperations.exec(spec -> {
             spec.executable(getExecutable().get());
+            if (!getModulePath().isEmpty()) {
+                spec.args("--module-path", String.join(":", getModulePath().getFiles().stream().map(File::getAbsolutePath).toList()));
+            }
             final var modules = getAddModules().get();
             if (!modules.isEmpty()) {
                 spec.args("--add-modules", String.join(",", modules));
@@ -96,12 +107,10 @@ public abstract class JlinkTask extends DefaultTask {
             if (getEndian().isPresent()) {
                 spec.args("--endian", getEndian().get().name().toLowerCase());
             }
-            if (getModulePath().isPresent()) {
-                spec.args("--module-path", getModulePath().get());
-            }
             if (getNoHeaderFiles().getOrElse(false)) spec.args("--no-header-files");
             if (getNoManPages().getOrElse(false)) spec.args("--no-man-pages");
             if (getStripDebug().getOrElse(false)) spec.args("--strip-debug");
+            if (getStripNativeCommands().getOrElse(false)) spec.args("--strip-native-commands");
             spec.args("--output", getOutput().get());
         });
     }

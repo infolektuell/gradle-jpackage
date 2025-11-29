@@ -10,12 +10,12 @@ version = releaseVersion.get()
 gradlePlugin {
     website = "https://infolektuell.github.io/gradle-java-packaging/"
     vcsUrl = "https://github.com/infolektuell/gradle-java-packaging.git"
-    plugins.register("javaPackagingPlugin") {
-        id = "de.infolektuell.java-packaging"
-        displayName = "Java Packaging"
+    plugins.register("jpackagePlugin") {
+        id = "de.infolektuell.jpackage"
+        displayName = "Gradle Jpackage Plugin"
         description = releaseNotes.get()
-        tags = listOf("java", "application", "installer", "jpackage", "jlink")
-        implementationClass = "de.infolektuell.gradle.jpackaging.GradleJavaPackagingPlugin"
+        tags = listOf("jpackage", "jlink", "application", "installer", "native")
+        implementationClass = "de.infolektuell.gradle.jpackage.GradleJpackagePlugin"
     }
 }
 
@@ -31,7 +31,7 @@ java {
     withSourcesJar()
     withJavadocJar()
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
 }
 

@@ -3,6 +3,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-rootProject.name = "gradle-java-app-packaging"
+rootProject.name = "gradle-jpackage"
 include("plugin")
-project(":plugin").name = "gradle-plugin-java-app-packaging"
+project(":plugin").name = "gradle-plugin-jpackage"
