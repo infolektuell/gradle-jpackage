@@ -5,6 +5,7 @@ plugins {
 }
 
 jpackage {
+    applicationName = "Sample"
 runtime {
     modules = listOf("java.base")
 }

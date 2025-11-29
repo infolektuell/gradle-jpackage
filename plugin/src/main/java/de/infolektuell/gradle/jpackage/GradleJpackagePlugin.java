@@ -1,6 +1,8 @@
 package de.infolektuell.gradle.jpackage;
 
 import de.infolektuell.gradle.jpackage.extensions.JpackageExtension;
+import de.infolektuell.gradle.jpackage.tasks.ApplicationImageTask;
+import de.infolektuell.gradle.jpackage.tasks.ApplicationPackageTask;
 import de.infolektuell.gradle.jpackage.tasks.JlinkTask;
 import de.infolektuell.gradle.jpackage.tasks.JpackageTask;
 import org.gradle.api.Plugin;
@@ -20,8 +22,8 @@ import org.jspecify.annotations.NonNull;
 import javax.inject.Inject;
 import java.util.List;
 
-import static de.infolektuell.gradle.jpackage.tasks.JpackageTask.JpackageModularOptions;
-import static de.infolektuell.gradle.jpackage.tasks.JpackageTask.JpackageNonModularOptions;
+import static de.infolektuell.gradle.jpackage.tasks.ApplicationImageTask.JpackageModularOptions;
+import static de.infolektuell.gradle.jpackage.tasks.ApplicationImageTask.JpackageNonModularOptions;
 
 /**
  * Gradle plugin that connects jpackage with the application plugin
@@ -46,7 +48,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
             JavaToolchainSpec defaultToolchain = java.getToolchain();
             extension.getToolchain().convention(defaultToolchain);
-            extension.getMetadata().getName().convention(application.getApplicationName());
+            extension.getApplicationName().convention(application.getApplicationName());
             extension.getMetadata().getAppVersion().convention(project.getVersion().toString());
             extension.getMetadata().getDescription().convention(project.getDescription());
             extension.getMetadata().getVendor().convention(project.getGroup().toString());
@@ -68,15 +70,13 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             });
 
             project.getTasks().withType(JpackageTask.class, task -> {
-                task.getMetadata().convention(extension.getMetadata());
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jpackage")));
-                task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
-                task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));
+                task.getApplicationName().convention(extension.getApplicationName());
             });
-
-            project.getTasks().register("jpackageNonModular", JpackageTask.class, task -> {
-                task.setGroup("Distribution");
-                task.setDescription("Generates a native app installer");
+            var jpackageImageTask = project.getTasks().register("jpackageAppImage", ApplicationImageTask.class, task -> {
+                task.getMetadata().convention(extension.getMetadata());
+                task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
+                task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
                 var modular = project.getObjects().newInstance(JpackageModularOptions.class);
                 modular.getModuleName().convention(application.getMainModule());
                 modular.getClassName().convention(application.getMainClass());
@@ -88,6 +88,12 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 nonModular.getMainJar().convention(jarTask.flatMap(AbstractArchiveTask::getArchiveFile));
                 nonModular.getMainClass().convention(application.getMainClass());
                 task.getModularity().convention(project.getProviders().provider(() -> application.getMainModule().isPresent() ? modular : nonModular));
+            });
+            project.getTasks().register("jpackage", ApplicationPackageTask.class, task -> {
+                task.setGroup("Distribution");
+                task.setDescription("Generates a native app installer");
+                task.getApplicationImage().convention(jpackageImageTask.flatMap(JpackageTask::getDest));
+                task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));
             });
         });
     }

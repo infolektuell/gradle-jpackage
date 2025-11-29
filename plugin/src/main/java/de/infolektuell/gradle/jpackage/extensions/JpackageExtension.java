@@ -8,7 +8,7 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.jspecify.annotations.NonNull;
 
-import static de.infolektuell.gradle.jpackage.tasks.JpackageTask.JpackageAppMetadata;
+import static de.infolektuell.gradle.jpackage.tasks.ApplicationImageTask.JpackageAppMetadata;
 
 /**
  * The DSL extension to configure the jpackage plugin
@@ -20,6 +20,7 @@ public abstract class JpackageExtension {
     public static final String EXTENSION_NAME = "jpackage";
 
     public abstract Property<@NonNull JavaToolchainSpec> getToolchain();
+    public abstract Property<@NonNull String> getApplicationName();
 
     @Nested
     public abstract JpackageAppMetadata getMetadata();
