@@ -25,6 +25,7 @@ public abstract class JpackageTask extends DefaultTask {
      * The jpackage executable to run
      */
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getExecutable();
 
     @Optional
@@ -35,6 +36,7 @@ public abstract class JpackageTask extends DefaultTask {
      * Arg files that contain additional options to be passed to jpackage
      */
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ListProperty<@NonNull RegularFile> getArgFiles();
 
     @OutputDirectory
@@ -46,7 +48,6 @@ public abstract class JpackageTask extends DefaultTask {
         getExecOperations().exec(spec -> {
             spec.executable(getExecutable().get());
             getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
-            System.out.println(getApplicationName().get());
             if (getApplicationName().isPresent()) spec.args("--name", getApplicationName().get());
             if (getDest().isPresent()) spec.args("--dest", getDest().get());
             action.execute(spec);

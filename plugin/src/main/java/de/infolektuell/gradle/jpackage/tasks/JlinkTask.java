@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.Serial;
 import java.io.Serializable;
 
+@CacheableTask
 public abstract class JlinkTask extends DefaultTask {
     public enum Endian implements Serializable {
         BIG, LITTLE;
@@ -30,10 +31,12 @@ public abstract class JlinkTask extends DefaultTask {
      * The jpackage executable to run
      */
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getExecutable();
 
     @Optional
     @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getModulePath();
 
     @Optional

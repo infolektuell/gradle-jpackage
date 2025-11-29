@@ -2,15 +2,13 @@ package de.infolektuell.gradle.jpackage.tasks;
 
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.provider.Property;
-import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.InputDirectory;
-import org.gradle.api.tasks.Optional;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.jspecify.annotations.NonNull;
 
 import java.io.Serial;
 import java.io.Serializable;
 
+@CacheableTask
 public abstract class ApplicationPackageTask extends JpackageTask {
     public enum Type implements Serializable {
         DMG, PKG, EXE, MSI, DEB, RPM;
@@ -23,6 +21,7 @@ public abstract class ApplicationPackageTask extends JpackageTask {
     public abstract Property<@NonNull Type> getType();
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getApplicationImage();
 
     @TaskAction

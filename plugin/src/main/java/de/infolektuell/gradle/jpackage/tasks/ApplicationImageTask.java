@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 /**
  * Generates an application image using Jpackage
  */
+@CacheableTask
 public abstract class ApplicationImageTask extends JpackageTask {
     private static final Pattern versionPattern = Pattern.compile("^\\d+([.]\\d+){0,2}$");
 
@@ -33,6 +34,7 @@ public abstract class ApplicationImageTask extends JpackageTask {
 
         @Optional
         @InputFile
+        @PathSensitive(PathSensitivity.RELATIVE)
         RegularFileProperty getIcon();
     }
 
@@ -49,9 +51,11 @@ public abstract class ApplicationImageTask extends JpackageTask {
 
     public non-sealed interface JpackageNonModularOptions extends JpackageModularityOptions {
         @InputDirectory
+        @PathSensitive(PathSensitivity.RELATIVE)
         DirectoryProperty getInput();
 
         @InputFile
+        @PathSensitive(PathSensitivity.RELATIVE)
         RegularFileProperty getMainJar();
 
         @Input
@@ -65,6 +69,7 @@ public abstract class ApplicationImageTask extends JpackageTask {
     public abstract Property<@NonNull JpackageAppMetadata> getMetadata();
 
     @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getRuntimeImage();
 
     @TaskAction
