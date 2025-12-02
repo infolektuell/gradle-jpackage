@@ -34,9 +34,8 @@ public abstract class JlinkTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getExecutable();
 
-    @Optional
+    @Classpath
     @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ConfigurableFileCollection getModulePath();
 
     @Optional

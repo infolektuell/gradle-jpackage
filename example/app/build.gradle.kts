@@ -5,11 +5,11 @@ plugins {
 }
 
 jpackage {
-    applicationName = "Sample"
+    metadata.name = "Sample"
 runtime {
     modules = listOf("java.base")
 }
-    argFiles = listOf(layout.projectDirectory.file("src/args.txt"))
+    // argFiles = listOf(layout.projectDirectory.file("src/args.txt"))
 }
 
 repositories {

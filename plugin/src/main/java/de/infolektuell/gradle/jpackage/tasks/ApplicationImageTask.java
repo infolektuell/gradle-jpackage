@@ -1,59 +1,26 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
+import de.infolektuell.gradle.jpackage.tasks.types.*;
+import org.gradle.api.NamedDomainObjectSet;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 import org.jspecify.annotations.NonNull;
-
-import java.util.regex.Pattern;
 
 /**
  * Generates an application image using Jpackage
  */
 @CacheableTask
 public abstract class ApplicationImageTask extends JpackageTask {
-    private static final Pattern versionPattern = Pattern.compile("^\\d+([.]\\d+){0,2}$");
-
-    public interface JpackageAppMetadata {
-        @Optional
+    public sealed interface Modularity permits Modular, NonModular {}
+    public non-sealed interface Modular extends Modularity {
         @Input
-        Property<@NonNull String> getAppVersion();
-
-        @Optional
-        @Input
-        Property<@NonNull String> getDescription();
-
-        @Optional
-        @Input
-        Property<@NonNull String> getVendor();
-
-        @Optional
-        @Input
-        Property<@NonNull String> getCopyright();
-
-        @Optional
-        @InputFile
-        @PathSensitive(PathSensitivity.RELATIVE)
-        RegularFileProperty getIcon();
+        Property<@NonNull String> getModule();
     }
-
-    public sealed interface JpackageModularityOptions permits JpackageModularOptions, JpackageNonModularOptions {}
-
-    public non-sealed interface JpackageModularOptions extends JpackageModularityOptions {
-        @Input
-        Property<@NonNull String> getModuleName();
-
-        @Optional
-        @Input
-        Property<@NonNull String> getClassName();
-    }
-
-    public non-sealed interface JpackageNonModularOptions extends JpackageModularityOptions {
-        @InputDirectory
-        @PathSensitive(PathSensitivity.RELATIVE)
-        DirectoryProperty getInput();
-
+    public non-sealed interface NonModular extends Modularity {
         @InputFile
         @PathSensitive(PathSensitivity.RELATIVE)
         RegularFileProperty getMainJar();
@@ -61,47 +28,49 @@ public abstract class ApplicationImageTask extends JpackageTask {
         @Input
         Property<@NonNull String> getMainClass();
     }
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract DirectoryProperty getInput();
 
-    @Nested
-    public abstract Property<@NonNull JpackageModularityOptions> getModularity();
-
-    @Nested
-    public abstract Property<@NonNull JpackageAppMetadata> getMetadata();
+    @InputFiles
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract ConfigurableFileCollection getAppContent();
 
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getRuntimeImage();
 
+    @Nested
+    public abstract Property<@NonNull Modularity> getModularity();
+
+    @Input
+    public abstract ListProperty<@NonNull String> getArguments();
+
+    @Input
+    public abstract ListProperty<@NonNull String> getJavaOptions();
+
+    @Nested
+    public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
+
     @TaskAction
     protected void run() {
         exec(spec -> {
+            // Content
             spec.args("--type", "app-image");
+            spec.args("--input", getInput().get());
+            getAppContent().forEach(f -> spec.args("--app-content", f.getAbsolutePath()));
+
+            // Launchers
             switch (getModularity().get()) {
-                case JpackageModularOptions modular -> {
-                    if (modular.getClassName().isPresent()) {
-                        spec.args("--module", String.join("/", modular.getModuleName().get(), modular.getClassName().get()));
-                    } else {
-                        spec.args("--module", modular.getModuleName().get());
-                    }
-                }
-                case JpackageNonModularOptions nonModular -> {
-                    spec.args("--input", nonModular.getInput().get());
+                case Modular modular -> spec.args("--module", modular.getModule().get());
+                case NonModular nonModular -> {
                     spec.args("--main-jar", nonModular.getMainJar().get().getAsFile().getName());
                     spec.args("--main-class", nonModular.getMainClass().get());
                 }
             }
-
-            // Metadata
-            final JpackageAppMetadata metadata = getMetadata().get();
-            if (metadata.getDescription().isPresent()) spec.args("--description", metadata.getDescription().get());
-            if (metadata.getAppVersion().isPresent()) {
-                var version = metadata.getAppVersion().get();
-                var matcher = versionPattern.matcher(version);
-                if (matcher.find()) spec.args("--app-version", version);
-            }
-            if (metadata.getCopyright().isPresent()) spec.args("--copyright", metadata.getCopyright().get());
-            if (metadata.getVendor().isPresent()) spec.args("--vendor", metadata.getVendor().get());
-            if (metadata.getIcon().isPresent()) spec.args("--icon", metadata.getIcon().get());
+            getArguments().get().forEach(a -> spec.args("--arguments", a));
+            getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
+            getAdditionalLaunchers().forEach(launcher -> spec.args("--add-launcher", String.join("=", launcher.getName(), launcher.getFile().get().getAsFile().getAbsolutePath())));
 
             spec.args("--runtime-image", getRuntimeImage().get());
         });

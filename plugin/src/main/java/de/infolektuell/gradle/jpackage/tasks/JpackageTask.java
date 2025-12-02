@@ -14,8 +14,15 @@ import org.gradle.process.ExecSpec;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
+import java.util.regex.Pattern;
 
 public abstract class JpackageTask extends DefaultTask {
+    private static final Pattern versionPattern = Pattern.compile("^\\d+([.]\\d+){0,2}$");
+    private static Boolean isVersion(String version) {
+        var matcher = versionPattern.matcher(version);
+        return matcher.find();
+    }
+
     @Inject
     protected abstract ExecOperations getExecOperations();
     @Inject
@@ -30,7 +37,28 @@ public abstract class JpackageTask extends DefaultTask {
 
     @Optional
     @Input
-    public abstract Property<@NonNull String> getApplicationName();
+    public abstract Property<@NonNull String> getAppName();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getAppVersion();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getAppDescription();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getVendor();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getCopyright();
+
+    @Optional
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getIcon();
 
     /**
      * Arg files that contain additional options to be passed to jpackage
@@ -48,7 +76,15 @@ public abstract class JpackageTask extends DefaultTask {
         getExecOperations().exec(spec -> {
             spec.executable(getExecutable().get());
             getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
-            if (getApplicationName().isPresent()) spec.args("--name", getApplicationName().get());
+
+            // Metadata
+            if (getAppName().isPresent()) spec.args("--name", getAppName().get());
+            if (getAppDescription().isPresent()) spec.args("--description", getAppDescription().get());
+            if (getAppVersion().isPresent() && isVersion(getAppVersion().get())) spec.args("--app-version", getAppVersion().get());
+            if (getIcon().isPresent()) spec.args("--icon", getIcon().get());
+            if (getCopyright().isPresent()) spec.args("--copyright", getCopyright().get());
+            if (getVendor().isPresent()) spec.args("--vendor", getVendor().get());
+
             if (getDest().isPresent()) spec.args("--dest", getDest().get());
             action.execute(spec);
         });
