@@ -4,14 +4,6 @@ plugins {
     id("de.infolektuell.jpackage")
 }
 
-jpackage {
-    metadata.name = "Sample"
-runtime {
-    // modules = listOf("java.base")
-}
-    // argFiles = listOf(layout.projectDirectory.file("src/args.txt"))
-}
-
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
@@ -30,13 +22,21 @@ dependencies {
 // Apply a specific Java toolchain to ease working on different environments.
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(25)
+        languageVersion = JavaLanguageVersion.of(25) // Used by jlink
     }
 }
 
 application {
     // Define the main class for the application.
     mainClass = "org.example.App"
+}
+
+jpackage {
+    metadata.name = "Nonmodular Sample App"
+    runtime {
+        // Modules to be added by Jlink, java.base by default
+        // modules.add("java.sql")
+    }
 }
 
 tasks.named<Test>("test") {
