@@ -7,7 +7,7 @@ plugins {
 jpackage {
     metadata.name = "Sample"
 runtime {
-    modules = listOf("java.base")
+    // modules = listOf("java.base")
 }
     // argFiles = listOf(layout.projectDirectory.file("src/args.txt"))
 }

@@ -52,6 +52,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             JavaToolchainSpec defaultToolchain = java.getToolchain();
             extension.getToolchain().convention(defaultToolchain);
             extension.getMetadata().getName().convention(application.getApplicationName());
+            extension.getRuntime().getModules().add(application.getMainModule().orElse("java.base"));
 
             TaskProvider<@NonNull Sync> installDist = project.getTasks().withType(Sync.class).named("installDist");
             TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");

@@ -24,8 +24,10 @@ public abstract class JlinkTask extends DefaultTask {
         private static final long serialVersionUID = 1L;
     }
 
-    private final ExecOperations execOperations;
-    private final FileSystemOperations fileSystemOperations;
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 
     /**
      * The jpackage executable to run
@@ -38,7 +40,6 @@ public abstract class JlinkTask extends DefaultTask {
     @InputFiles
     public abstract ConfigurableFileCollection getModulePath();
 
-    @Optional
     @Input
     public abstract ListProperty<@NonNull String> getAddModules();
 
@@ -77,27 +78,15 @@ public abstract class JlinkTask extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutput();
 
-    @Inject
-    public JlinkTask(
-        ExecOperations execOperations,
-        FileSystemOperations fileSystemOperations
-    ) {
-        this.execOperations = execOperations;
-        this.fileSystemOperations = fileSystemOperations;
-    }
-
     @TaskAction
     protected void run() {
-        fileSystemOperations.delete(spec -> spec.delete(getOutput()));
-        execOperations.exec(spec -> {
+        getFileSystemOperations().delete(spec -> spec.delete(getOutput()));
+        getExecOperations().exec(spec -> {
             spec.executable(getExecutable().get());
             if (!getModulePath().isEmpty()) {
                 spec.args("--module-path", String.join(":", getModulePath().getFiles().stream().map(File::getAbsolutePath).toList()));
             }
-            final var modules = getAddModules().get();
-            if (!modules.isEmpty()) {
-                spec.args("--add-modules", String.join(",", modules));
-            }
+            spec.args("--add-modules", String.join(",", getAddModules().get()));
             if (getBindServices().getOrElse(false)) spec.args("--bind-services");
             if (getCompress().isPresent()) {
                 var level = Integer.max(Integer.min(getCompress().get(), 9), 0);
