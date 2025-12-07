@@ -2,13 +2,12 @@
 
 [![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/de.infolektuell.jpackage)](https://plugins.gradle.org/plugin/de.infolektuell.jpackage)
 
-This Gradle plugin utilizes jpackage and jlink to create native installers for Java applications. 
+This Gradle plugin creates native installers for apps built with the Java Application plugin. 
 
 ## Features
 
 - Supports modular and non-modular applications.
-- High-level convenience plugin and DSL extension that generates native installers for apps built with the Java Application plugin.
-- Low-level tasks for Jlink and Jpackage for any custom needs, offering access to the CLI options in a type-safe way.
+- Low-level tasks for tools like Jlink, Jdeps, and Jpackage for any custom needs, offering access to the CLI options in a type-safe way.
 - Compatible with Gradle's configuration cache and build cache.
 
 ## Quick Start
@@ -16,15 +15,7 @@ This Gradle plugin utilizes jpackage and jlink to create native installers for J
 ```kts
 plugins {
     application
-    id("de.infolektuell.java-packaging") version "x.y.z"
-}
-
-jpackage {
-  // Configuration for the generated runtime image
-  runtime {
-    // Modules to include in the runtime image
-    modules = listOf("java.base")
-  }
+    id("de.infolektuell.jpackage") version "x.y.z"
 }
 
 repositories {
@@ -37,7 +28,20 @@ java {
       languageVersion = JavaLanguageVersion.of(25)
     }
 }
+
+application {
+  // Define the main class for the application.
+  mainClass = "org.example.App"
+}
+
+jpackage {
+  metadata.name = "Nonmodular Sample App"
+}
 ```
+
+In many cases, configuring the application plugin and some jpackage metadata is sufficient.
+The plugin grabs as much information as possible from the java and application plugins,
+and it guesses the modules needed by nonmodular apps using the jdeps tool.
 
 ## Background
 
