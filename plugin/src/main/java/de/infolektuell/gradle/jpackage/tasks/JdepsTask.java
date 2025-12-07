@@ -30,7 +30,7 @@ public abstract class JdepsTask extends DefaultTask {
     @InputFiles
     public abstract ConfigurableFileCollection getModulePath();
 
-    @Input
+    @Nested
     public abstract Property<@NonNull Modularity> getModularity();
 
     @Optional
