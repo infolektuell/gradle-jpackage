@@ -6,9 +6,11 @@ This Gradle plugin creates native installers for apps built with the Java Applic
 
 ## Features
 
-- Supports modular and non-modular applications.
-- Low-level tasks for tools like Jlink, Jdeps, and Jpackage for any custom needs, offering access to the CLI options in a type-safe way.
-- Compatible with Gradle's configuration cache and build cache.
+- [x] Supports modular and non-modular applications.
+- [x] Works with JavaFX out of the box.
+- [x] Low-level tasks for tools like Jlink, Jdeps, and Jpackage for any custom needs, offering access to the CLI options in a type-safe way.
+- [x] Compatible with Gradle's configuration cache and build cache.
+- [ ] Signing macOS apps (coming soon)
 
 ## Quick Start
 
