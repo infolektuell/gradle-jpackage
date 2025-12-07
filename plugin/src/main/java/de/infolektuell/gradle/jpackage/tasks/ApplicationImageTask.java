@@ -48,7 +48,10 @@ public abstract class ApplicationImageTask extends JpackageTask {
 
             // Launchers
             switch (getModularity().get()) {
-                case Modular modular -> spec.args("--module", modular.getModule().get());
+                case Modular modular -> {
+                    var module = modular.getMainModule().zip(modular.getMainClass(), (mainModule, mainClass) -> String.join("/", mainModule, mainClass));
+                    spec.args("--module", module.get());
+                }
                 case NonModular nonModular -> {
                     spec.args("--main-jar", nonModular.getMainJar().get().getAsFile().getName());
                     spec.args("--main-class", nonModular.getMainClass().get());

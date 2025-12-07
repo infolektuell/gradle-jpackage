@@ -68,6 +68,20 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             var modulePath = classpath.filter(this::isModule);
             var nonModulePath = classpath.minus(modulePath);
 
+            Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
+                if (application.getMainModule().isPresent()) {
+                    var modular = project.getObjects().newInstance(Modular.class);
+                    modular.getMainModule().convention(application.getMainModule());
+                    modular.getMainClass().convention(application.getMainClass());
+                    return modular;
+                } else {
+                    var nonModular = project.getObjects().newInstance(NonModular.class);
+                    nonModular.getMainJar().convention(mainJar);
+                    nonModular.getMainClass().convention(application.getMainClass());
+                    return nonModular;
+                }
+            });
+
             TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register("prepareInput", PrepareInputTask.class, task -> {
                 task.getSource().from(nonModulePath);
                 task.getDestination().convention(project.getLayout().getBuildDirectory().dir("jpackage/input"));
@@ -77,7 +91,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jdeps")));
                 task.getClassPath().from(nonModulePath);
                 task.getModulePath().from(modulePath);
-                task.getMainJar().convention(mainJar);
+                task.getModularity().convention(modularity);
+                task.getRecursive().convention(true);
+                task.getPrintModuleDeps().convention(true);
+                task.getIgnoreMissingDeps().convention(true);
                 task.getMultiRelease().convention(extension.getToolchain().flatMap(JavaToolchainSpec::getLanguageVersion));
                 task.getDestinationFile().convention(project.getLayout().getBuildDirectory().file("jpackage/jdeps/jdeps-result.txt"));
             });
@@ -103,20 +120,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getOutput().convention(project.getLayout().getBuildDirectory().dir("jpackage/runtime"));
             });
 
-            Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
-                if (application.getMainModule().isPresent()) {
-                    var modular = project.getObjects().newInstance(Modular.class);
-                    var module = application.getMainModule().zip(application.getMainClass(), (mainModule, mainClass) -> String.join("/", mainModule, mainClass));
-                    modular.getModule().convention(module);
-                    return modular;
-                } else {
-                    var nonModular = project.getObjects().newInstance(NonModular.class);
-                    nonModular.getMainJar().convention(mainJar);
-                    nonModular.getMainClass().convention(application.getMainClass());
-                    return nonModular;
-                }
-            });
-
             project.getTasks().withType(JpackageTask.class, task -> {
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jpackage")));
                 task.getAppName().convention(extension.getMetadata().getName());
@@ -133,6 +136,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
                 task.getAppContent().from(extension.getImage().getContent());
                 task.getModularity().convention(modularity);
+                task.getJavaOptions().convention(extension.getImage().getJvmArgs());
                 extension.getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
                 task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
