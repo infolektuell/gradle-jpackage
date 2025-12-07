@@ -10,13 +10,14 @@ repositories {
 }
 
 dependencies {
+    // This dependency is used by the application.
+    implementation(libs.guava)
+
     // Use JUnit Jupiter for testing.
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // This dependency is used by the application.
-    implementation(libs.guava)
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -33,10 +34,6 @@ application {
 
 jpackage {
     metadata.name = "Nonmodular Sample App"
-    runtime {
-        // Modules to be added by Jlink, java.base by default
-        // modules.add("java.sql")
-    }
 }
 
 tasks.named<Test>("test") {

@@ -1,3 +1,3 @@
 module example.app {
-    exports org.example;
+  requires com.google.common;
 }
