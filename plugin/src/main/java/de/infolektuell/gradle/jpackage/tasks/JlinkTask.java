@@ -104,5 +104,6 @@ public abstract class JlinkTask extends DefaultTask {
             if (getStripNativeCommands().getOrElse(false)) spec.args("--strip-native-commands");
             spec.args("--output", getOutput().get());
         });
+
     }
 }

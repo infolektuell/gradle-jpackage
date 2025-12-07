@@ -1,10 +1,9 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.types.*;
+import de.infolektuell.gradle.jpackage.tasks.modularity.*;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
@@ -15,19 +14,6 @@ import org.jspecify.annotations.NonNull;
  */
 @CacheableTask
 public abstract class ApplicationImageTask extends JpackageTask {
-    public sealed interface Modularity permits Modular, NonModular {}
-    public non-sealed interface Modular extends Modularity {
-        @Input
-        Property<@NonNull String> getModule();
-    }
-    public non-sealed interface NonModular extends Modularity {
-        @InputFile
-        @PathSensitive(PathSensitivity.RELATIVE)
-        RegularFileProperty getMainJar();
-
-        @Input
-        Property<@NonNull String> getMainClass();
-    }
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getInput();

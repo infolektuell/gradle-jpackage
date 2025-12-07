@@ -29,12 +29,6 @@ public abstract class JpackageExtension {
     }
 
     @Nested
-    public abstract RuntimeHandler getRuntime();
-    public void runtime(Action<@NonNull RuntimeHandler> action) {
-        action.execute(getRuntime());
-    }
-
-    @Nested
     public abstract ImageHandler getImage();
     public void image(Action<@NonNull ImageHandler> action) {
         action.execute(getImage());
