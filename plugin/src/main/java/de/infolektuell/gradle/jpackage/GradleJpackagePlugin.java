@@ -1,5 +1,6 @@
 package de.infolektuell.gradle.jpackage;
 
+import de.infolektuell.gradle.jpackage.extensions.ApplicationExtension;
 import de.infolektuell.gradle.jpackage.extensions.JpackageExtension;
 import de.infolektuell.gradle.jpackage.tasks.*;
 import de.infolektuell.gradle.jpackage.tasks.modularity.*;
@@ -8,7 +9,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.ArchiveOperations;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
@@ -44,15 +44,16 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
 
     @Override
     public void apply(@NotNull Project project) {
+        ApplicationExtension application = project.getExtensions().create(ApplicationExtension.EXTENSION_NAME, ApplicationExtension.class);
         JpackageExtension extension = project.getExtensions().create(JpackageExtension.EXTENSION_NAME, JpackageExtension.class);
         extension.getInstaller().getLauncherAsService().convention(false);
         extension.getMetadata().getVersion().convention(project.getVersion().toString());
         extension.getMetadata().getDescription().convention(project.getDescription());
         extension.getMetadata().getVendor().convention(project.getGroup().toString());
+        var osName = project.getProviders().systemProperty("os.name");
 
-        project.getPluginManager().withPlugin("application", applicationPlugin -> {
+        project.getPluginManager().withPlugin("java", javaPlugin -> {
             JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-            JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
             JavaToolchainSpec defaultToolchain = java.getToolchain();
             extension.getToolchain().convention(defaultToolchain);
 
@@ -82,13 +83,21 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 }
             });
 
+            project.getTasks().register("run", RunTask.class, task -> {
+                task.setGroup("application");
+                task.getExecutable().convention(extension.getToolchain().flatMap(t -> getJavaToolchainService().launcherFor(t).map(JavaLauncher::getExecutablePath)));
+                task.getClasspath().from(nonModulePath);
+                task.getModulePath().from(modulePath);
+                task.getModularity().convention(modularity);
+            });
+
             TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register("prepareInput", PrepareInputTask.class, task -> {
                 task.getSource().from(nonModulePath);
                 task.getDestination().convention(project.getLayout().getBuildDirectory().dir("jpackage/input"));
             });
 
             var jdepsTask = project.getTasks().register("jdeps", JdepsTask.class, task -> {
-                task.getExecutable().convention(installationPath.map(p -> p.file("bin/jdeps")));
+                task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jdeps.exe" : "bin/jdeps")));
                 task.getClassPath().from(nonModulePath);
                 task.getModulePath().from(modulePath);
                 task.getModularity().convention(modularity);
@@ -110,7 +119,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             var jlinkTask = project.getTasks().register("jlink", JlinkTask.class, task -> {
                 task.setGroup("Distribution");
                 task.setDescription("Generates a customized runtime image");
-                task.getExecutable().convention(installationPath.map(p -> p.file("bin/jlink")));
+                task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jlink.exe" : "bin/jlink")));
                 task.getModulePath().from(modulePath);
                 task.getAddModules().add(application.getMainModule().orElse(modulesProvider));
                 task.getNoHeaderFiles().convention(true);
@@ -121,6 +130,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             });
 
             project.getTasks().withType(JpackageTask.class, task -> {
+                task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jpackage.exe" : "bin/jpackage")));
                 task.getExecutable().convention(installationPath.map(p -> p.file("bin/jpackage")));
                 task.getAppName().convention(extension.getMetadata().getName());
                 task.getAppDescription().convention(extension.getMetadata().getDescription());
@@ -145,7 +155,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             project.getTasks().register("appInstaller", ApplicationPackageTask.class, task -> {
                 task.setGroup("jpackage");
                 task.setDescription("Generates a native app installer");
-                var currentType = project.getProviders().systemProperty("os.name").flatMap((os) -> {
+                var currentType = osName.flatMap((os) -> {
                     if (isWindows(os)) return extension.getInstaller().getType().getWindows().map(Enum::name);
                     if (isMac(os)) return extension.getInstaller().getType().getMac().map(Enum::name);
                     return extension.getInstaller().getType().getLinux().map(Enum::name);
