@@ -11,6 +11,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
@@ -108,15 +109,17 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 }
             }));
 
-            project.getTasks().register("run", RunTask.class, task -> {
+            project.getTasks().register("run", JavaExec.class, task -> {
                 task.dependsOn("classes");
                 task.setGroup("application");
                 task.setDescription("Runs this project as a JVM application");
-                task.getClassPath().from(nonModulePath);
-                task.getModulePath().from(modulePath);
-                task.getModularity().convention(modularity);
-                task.getAddModules().add(application.getMainModule().orElse(modulesProvider));
-                task.getJavaOptions().convention(application.getApplicationDefaultJvmArgs());
+                task.classpath(nonModulePath);
+                if (!modulePath.isEmpty()) task.jvmArgs("--module-path", modulePath.getAsPath());
+                task.jvmArgs("--add-modules");
+                task.getJvmArguments().add(application.getMainModule().orElse(modulesProvider));
+                task.getJvmArguments().addAll(application.getApplicationDefaultJvmArgs());
+                task.getMainModule().convention(application.getMainModule());
+                task.getMainClass().convention(application.getMainClass());
             });
 
             var jlinkTask = project.getTasks().register("jlink", JlinkTask.class, task -> {
