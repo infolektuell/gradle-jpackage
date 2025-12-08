@@ -1,6 +1,4 @@
 plugins {
-    // Apply the application plugin to add support for building a CLI application in Java.
-    // application
     java
     id("de.infolektuell.jpackage")
 }
@@ -29,12 +27,9 @@ java {
 }
 
 application {
+    metadata.name = "Sample"
     // Define the main class for the application.
     mainClass = "org.example.App"
-}
-
-jpackage {
-    metadata.name = "Nonmodular Sample App"
 }
 
 tasks.named<Test>("test") {
