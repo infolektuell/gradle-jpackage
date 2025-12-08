@@ -9,17 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Offers low-level tasks for Jlink, Jdeps, and Jpackage.
+- The plugin relies on the Java plugin and its configuration to configure itself with sensible defaults.
 - Offers a DSL extension to configure app metadata and jpackage settings.
 - Platform-specific settings can be configured as well, e.g., the installer type for each platform.
-- The plugin registers and configures the tasks using the DSL extensions from Java, Application, and this plugin.
-  - The plugin uses the `application.mainModule` property to decide whether the app is modular or nonmodular.
-  - Module dependencies of nonmodular apps are inferred using the Jdeps tool.
-  - Nonmodular jar files (main and dependencies) are added to the app. Modules are included in the runtime image.
-  - The Java toolchain configured in the Java plugin is used by default, but can be customized.
-  - The classpath and module path where the dependencies can be found are inferred from the main source set's runtime classpath.
+- Offers low-level tasks for Jlink, Jdeps, and Jpackage.
 - Every packaging step has its own task with their inputs and outputs. Each intermediate task can be executed without having to run the complete chain.
-  - Analyzing module dependencies (for nonmodular apps)
-  - Creating the runtime image with the requested modules
-  - Creating the app image that contains the created runtime image
-  - Creating the app installer from the created app image
+  - Analyzing module dependencies using Jdeps (for nonmodular apps)
+  - Creating the runtime image with the requested modules using Jlink
+  - Creating the app image that contains the created runtime image using Jpackage
+  - Creating the app installer from the created app image using Jpackage
+- The plugin is a drop-in replacement for the application plugin.
+  - It creates its own application extension that consistently uses lazy properties. Users shouldn't remark any difference in their build script.
+  - It registers its own run task which is compatible with configuration cache and uses Jdeps for more reliable module detection.
