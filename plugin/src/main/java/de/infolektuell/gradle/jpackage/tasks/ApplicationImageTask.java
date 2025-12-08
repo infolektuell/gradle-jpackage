@@ -35,7 +35,7 @@ public abstract class ApplicationImageTask extends JpackageTask {
     @Input
     public abstract ListProperty<@NonNull String> getJavaOptions();
 
-    @Nested
+    @Input
     public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
 
     @TaskAction

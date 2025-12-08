@@ -14,7 +14,7 @@ public abstract class ApplicationPackageTask extends PackageTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getApplicationImage();
 
-    @Nested
+    @Input
     public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
 
     @Optional
