@@ -58,10 +58,10 @@ public abstract class JdepsTask extends DefaultTask {
             getExecOperations().exec(spec -> {
                 spec.executable(getExecutable().get());
                 if (!getClassPath().isEmpty()) {
-                    spec.args("--class-path", String.join(":", getClassPath().getFiles().stream().map(File::getAbsolutePath).toList()));
+                    spec.args("--class-path", getClassPath().getAsPath());
                 }
                 if (!getModulePath().isEmpty()) {
-                    spec.args("--module-path", String.join(":", getModulePath().getFiles().stream().map(File::getAbsolutePath).toList()));
+                    spec.args("--module-path", getModulePath().getAsPath());
                 }
                 if (getRecursive().getOrElse(false)) spec.args("--recursive");
                 if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");

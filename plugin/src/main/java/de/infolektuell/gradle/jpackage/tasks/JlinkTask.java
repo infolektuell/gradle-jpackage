@@ -1,10 +1,7 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileSystemOperations;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.*;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
@@ -84,7 +81,7 @@ public abstract class JlinkTask extends DefaultTask {
         getExecOperations().exec(spec -> {
             spec.executable(getExecutable().get());
             if (!getModulePath().isEmpty()) {
-                spec.args("--module-path", String.join(":", getModulePath().getFiles().stream().map(File::getAbsolutePath).toList()));
+                spec.args("--module-path", getModulePath().getAsPath());
             }
             spec.args("--add-modules", String.join(",", getAddModules().get()));
             if (getBindServices().getOrElse(false)) spec.args("--bind-services");
