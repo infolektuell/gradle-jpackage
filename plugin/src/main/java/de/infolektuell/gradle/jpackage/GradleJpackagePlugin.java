@@ -65,9 +65,11 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             extension.getMetadata().getName().convention(application.getApplicationName());
             TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");
             var mainJar = jarTask.flatMap(AbstractArchiveTask::getArchiveFile);
-            var classpath =project.getObjects().fileCollection().from(mainJar, java.getSourceSets().named("main").map(s -> s.getRuntimeClasspath().filter(f -> f.isFile() && f.getName().endsWith(".jar"))));
+            // var classpath =project.getObjects().fileCollection().from(mainJar, java.getSourceSets().named("main").map(s -> s.getRuntimeClasspath()/*.filter(f -> f.isFile() && f.getName().endsWith(".jar"))*/));
+            var classpath = java.getSourceSets().getByName("main").getRuntimeClasspath();
             var modulePath = classpath.filter(this::isModule);
             var nonModulePath = classpath.minus(modulePath);
+            java.manifest().getAttributes().put("Main-Class", application.getMainClass());
 
             Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
                 if (application.getMainModule().isPresent()) {
@@ -83,20 +85,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 }
             });
 
-            project.getTasks().register("run", RunTask.class, task -> {
-                task.setGroup("application");
-                task.getExecutable().convention(extension.getToolchain().flatMap(t -> getJavaToolchainService().launcherFor(t).map(JavaLauncher::getExecutablePath)));
-                task.getClasspath().from(nonModulePath);
-                task.getModulePath().from(modulePath);
-                task.getModularity().convention(modularity);
-            });
-
-            TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register("prepareInput", PrepareInputTask.class, task -> {
-                task.getSource().from(nonModulePath);
-                task.getDestination().convention(project.getLayout().getBuildDirectory().dir("jpackage/input"));
-            });
-
             var jdepsTask = project.getTasks().register("jdeps", JdepsTask.class, task -> {
+                task.dependsOn("classes");
+                task.setGroup("application");
+                task.setDescription("Analyzes the project for required modules");
                 task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jdeps.exe" : "bin/jdeps")));
                 task.getClassPath().from(nonModulePath);
                 task.getModulePath().from(modulePath);
@@ -116,8 +108,19 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 }
             }));
 
+            project.getTasks().register("run", RunTask.class, task -> {
+                task.dependsOn("classes");
+                task.setGroup("application");
+                task.setDescription("Runs the application");
+                task.getClassPath().from(nonModulePath);
+                task.getModulePath().from(modulePath);
+                task.getModularity().convention(modularity);
+                task.getAddModules().add(application.getMainModule().orElse(modulesProvider));
+                task.getJavaOptions().convention(application.getApplicationDefaultJvmArgs());
+            });
+
             var jlinkTask = project.getTasks().register("jlink", JlinkTask.class, task -> {
-                task.setGroup("Distribution");
+                task.setGroup("application");
                 task.setDescription("Generates a customized runtime image");
                 task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jlink.exe" : "bin/jlink")));
                 task.getModulePath().from(modulePath);
@@ -127,6 +130,12 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getStripDebug().convention(true);
                 task.getStripNativeCommands().convention(true);
                 task.getOutput().convention(project.getLayout().getBuildDirectory().dir("jpackage/runtime"));
+            });
+
+            TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register("prepareInput", PrepareInputTask.class, task -> {
+                task.getSource().from(nonModulePath);
+                task.getModularity().convention(modularity);
+                task.getDestination().convention(project.getLayout().getBuildDirectory().dir("jpackage/input"));
             });
 
             project.getTasks().withType(JpackageTask.class, task -> {
@@ -141,7 +150,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             });
 
             var jpackageImageTask = project.getTasks().register("appImage", ApplicationImageTask.class, task -> {
-                task.setGroup("jpackage");
+                task.setGroup("application");
                 task.setDescription("Generates a native app image");
                 task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
                 task.getAppContent().from(extension.getImage().getContent());
@@ -153,7 +162,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             });
 
             project.getTasks().register("appInstaller", ApplicationPackageTask.class, task -> {
-                task.setGroup("jpackage");
+                task.setGroup("application");
                 task.setDescription("Generates a native app installer");
                 var currentType = osName.flatMap((os) -> {
                     if (isWindows(os)) return extension.getInstaller().getType().getWindows().map(Enum::name);

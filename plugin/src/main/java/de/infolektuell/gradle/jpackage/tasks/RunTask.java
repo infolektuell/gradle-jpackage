@@ -5,26 +5,22 @@ import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
 import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.options.*;
 import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
-import java.io.File;
 
 public abstract class RunTask extends DefaultTask {
     @Inject
     protected abstract ExecOperations getExecOperations();
 
-    @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract RegularFileProperty getExecutable();
-
     @InputFiles
     @Classpath
-    public abstract ConfigurableFileCollection getClasspath();
+    public abstract ConfigurableFileCollection getClassPath();
 
     @InputFiles
     @Classpath
@@ -33,23 +29,28 @@ public abstract class RunTask extends DefaultTask {
     @Nested
     public abstract Property<@NonNull Modularity> getModularity();
 
+    @Input
+    public abstract ListProperty<@NonNull String> getAddModules();
+
+    @Input
+    public abstract ListProperty<@NonNull String> getJavaOptions();
+
+    @Input
+    @Option(option = "args", description = "Arguments passed to the application")
+    public abstract ListProperty<@NonNull String> getArguments();
+
     @TaskAction
     protected void run() {
         getExecOperations().javaexec(spec -> {
-            if (!getClasspath().isEmpty()) spec.setClasspath(getClasspath());
-            if (!getModulePath().isEmpty()) {
-                spec.jvmArgs("--module-path", String.join(":", getModulePath().getFiles().stream().map(File::getAbsolutePath).toList()));
-            }
+            spec.classpath(getClassPath());
+            if (!getModulePath().isEmpty()) spec.jvmArgs("--module-path", getModulePath().getAsPath());
+            getAddModules().get().forEach(m -> spec.jvmArgs("--add-modules", m));
+            spec.jvmArgs(getJavaOptions().get());
             switch (getModularity().get()) {
-                case Modular modular -> {
-                    spec.getMainModule().convention(modular.getMainModule());
-                    // spec.getMainClass().convention(modular.getMainClass());
-                }
-                case NonModular nonModular -> {
-                    spec.getMainClass().convention(nonModular.getMainClass());
-                    spec.jvmArgs("-jar", nonModular.getMainJar().get().getAsFile().getAbsolutePath());
-                }
+                case Modular modular -> spec.getMainModule().convention(modular.getMainModule().zip(modular.getMainClass(), (m, c) -> String.join("/", m, c)));
+                case NonModular nonModular -> spec.getMainClass().convention(nonModular.getMainClass());
             }
+            spec.args(getArguments().get());
         });
     }
 }
