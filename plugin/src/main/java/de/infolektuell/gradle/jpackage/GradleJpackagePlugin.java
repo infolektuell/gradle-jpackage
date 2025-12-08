@@ -111,7 +111,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             project.getTasks().register("run", RunTask.class, task -> {
                 task.dependsOn("classes");
                 task.setGroup("application");
-                task.setDescription("Runs the application");
+                task.setDescription("Runs this project as a JVM application");
                 task.getClassPath().from(nonModulePath);
                 task.getModulePath().from(modulePath);
                 task.getModularity().convention(modularity);

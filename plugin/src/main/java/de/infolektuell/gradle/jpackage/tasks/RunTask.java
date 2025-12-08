@@ -36,12 +36,18 @@ public abstract class RunTask extends DefaultTask {
     public abstract ListProperty<@NonNull String> getJavaOptions();
 
     @Input
-    @Option(option = "args", description = "Arguments passed to the application")
+    @Option(option = "args", description = "Command line arguments passed to the main class.")
     public abstract ListProperty<@NonNull String> getArguments();
+
+    @Optional
+    @Input
+    @Option(option = "debug-jvm", description = "Enable debugging for the process. The process is started suspended and listening on port 5005.")
+    public abstract Property<@NonNull Boolean> getDebugJvm();
 
     @TaskAction
     protected void run() {
         getExecOperations().javaexec(spec -> {
+            spec.setDebug(getDebugJvm().getOrElse(false));
             spec.classpath(getClassPath());
             if (!getModulePath().isEmpty()) spec.jvmArgs("--module-path", getModulePath().getAsPath());
             getAddModules().get().forEach(m -> spec.jvmArgs("--add-modules", m));
