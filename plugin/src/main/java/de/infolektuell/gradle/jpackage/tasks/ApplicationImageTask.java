@@ -38,6 +38,19 @@ public abstract class ApplicationImageTask extends JpackageTask {
     @Input
     public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
 
+    // Mac-specific
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getMacAppCategory();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getMacPackageName();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getMacPackageIdentifier();
+
     @TaskAction
     protected void run() {
         exec(spec -> {
@@ -60,6 +73,9 @@ public abstract class ApplicationImageTask extends JpackageTask {
             getArguments().get().forEach(a -> spec.args("--arguments", a));
             getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
             getAdditionalLaunchers().forEach(launcher -> spec.args("--add-launcher", String.join("=", launcher.getName(), launcher.getFile().get().getAsFile().getAbsolutePath())));
+            if (getMacAppCategory().isPresent()) spec.args("--mac-app-category", getMacAppCategory().get());
+            if (getMacPackageName().isPresent()) spec.args("--mac-package-name", getMacPackageName().get());
+            if (getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", getMacPackageIdentifier().get());
 
             spec.args("--runtime-image", getRuntimeImage().get());
         });

@@ -33,12 +33,9 @@ java {
 }
 
 application {
-  // Define the main class for the application.
-  mainClass = "org.example.App"
-}
-
-jpackage {
   metadata.name = "SampleApp"
+  // Define the main class for the application.
+  launcher.mainClass = "org.example.App"
 }
 ```
 

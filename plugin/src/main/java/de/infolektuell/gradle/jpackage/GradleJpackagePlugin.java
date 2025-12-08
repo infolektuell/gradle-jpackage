@@ -1,13 +1,14 @@
 package de.infolektuell.gradle.jpackage;
 
 import de.infolektuell.gradle.jpackage.extensions.ApplicationExtension;
-import de.infolektuell.gradle.jpackage.extensions.JpackageExtension;
 import de.infolektuell.gradle.jpackage.tasks.*;
 import de.infolektuell.gradle.jpackage.tasks.modularity.*;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ArchiveOperations;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
@@ -45,43 +46,39 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
 
     @Override
     public void apply(@NotNull Project project) {
+        Provider<@NonNull String> osName = project.getProviders().systemProperty("os.name");
         ApplicationExtension application = project.getExtensions().create(ApplicationExtension.EXTENSION_NAME, ApplicationExtension.class);
-        JpackageExtension extension = project.getExtensions().create(JpackageExtension.EXTENSION_NAME, JpackageExtension.class);
-        extension.getInstaller().getLauncherAsService().convention(false);
-        extension.getMetadata().getVersion().convention(project.getVersion().toString());
-        extension.getMetadata().getDescription().convention(project.getDescription());
-        extension.getMetadata().getVendor().convention(project.getGroup().toString());
-        var osName = project.getProviders().systemProperty("os.name");
+        application.metadata(data -> {
+            data.getName().convention(project.getName());
+            data.getVersion().convention(project.getVersion().toString());
+            data.getDescription().convention(project.getDescription());
+            data.getVendor().convention(project.getGroup().toString());
+        });
+        application.getLauncher().getLauncherAsService().convention(false);
 
         project.getPluginManager().withPlugin("java", javaPlugin -> {
             JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-            JavaToolchainSpec defaultToolchain = java.getToolchain();
-            extension.getToolchain().convention(defaultToolchain);
-
-            var installationPath = extension.getToolchain()
-                .flatMap(spec -> getJavaToolchainService().compilerFor(spec))
+            java.manifest().getAttributes().put("Main-Class", application.getLauncher().getMainClass());
+            var installationPath = getJavaToolchainService().compilerFor(java.getToolchain())
                 .orElse(getJavaToolchainService().compilerFor(spec -> {}))
                 .map(it -> it.getMetadata().getInstallationPath());
 
-            extension.getMetadata().getName().convention(application.getApplicationName());
             TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");
-            var mainJar = jarTask.flatMap(AbstractArchiveTask::getArchiveFile);
-            // var classpath =project.getObjects().fileCollection().from(mainJar, java.getSourceSets().named("main").map(s -> s.getRuntimeClasspath()/*.filter(f -> f.isFile() && f.getName().endsWith(".jar"))*/));
-            var classpath = java.getSourceSets().getByName("main").getRuntimeClasspath();
-            var modulePath = classpath.filter(this::isModule);
-            var nonModulePath = classpath.minus(modulePath);
-            java.manifest().getAttributes().put("Main-Class", application.getMainClass());
+            Provider<@NonNull RegularFile> mainJar = jarTask.flatMap(AbstractArchiveTask::getArchiveFile);
+            FileCollection classpath = java.getSourceSets().getByName("main").getRuntimeClasspath();
+            FileCollection modulePath = classpath.filter(this::isModule);
+            FileCollection nonModulePath = classpath.minus(modulePath);
 
             Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
-                if (application.getMainModule().isPresent()) {
+                if (application.getLauncher().getMainModule().isPresent()) {
                     var modular = project.getObjects().newInstance(Modular.class);
-                    modular.getMainModule().convention(application.getMainModule());
-                    modular.getMainClass().convention(application.getMainClass());
+                    modular.getMainModule().convention(application.getLauncher().getMainModule());
+                    modular.getMainClass().convention(application.getLauncher().getMainClass());
                     return modular;
                 } else {
                     var nonModular = project.getObjects().newInstance(NonModular.class);
                     nonModular.getMainJar().convention(mainJar);
-                    nonModular.getMainClass().convention(application.getMainClass());
+                    nonModular.getMainClass().convention(application.getLauncher().getMainClass());
                     return nonModular;
                 }
             });
@@ -97,7 +94,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getRecursive().convention(true);
                 task.getPrintModuleDeps().convention(true);
                 task.getIgnoreMissingDeps().convention(true);
-                task.getMultiRelease().convention(extension.getToolchain().flatMap(JavaToolchainSpec::getLanguageVersion));
+                task.getMultiRelease().convention(java.getToolchain().getLanguageVersion());
                 task.getDestinationFile().convention(project.getLayout().getBuildDirectory().file("jpackage/jdeps/jdeps-result.txt"));
             });
 
@@ -116,10 +113,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.classpath(nonModulePath);
                 if (!modulePath.isEmpty()) task.jvmArgs("--module-path", modulePath.getAsPath());
                 task.jvmArgs("--add-modules");
-                task.getJvmArguments().add(application.getMainModule().orElse(modulesProvider));
-                task.getJvmArguments().addAll(application.getApplicationDefaultJvmArgs());
-                task.getMainModule().convention(application.getMainModule());
-                task.getMainClass().convention(application.getMainClass());
+                task.getJvmArguments().add(application.getLauncher().getMainModule().orElse(modulesProvider));
+                task.getJvmArguments().addAll(application.getLauncher().getJavaOptions());
+                task.getMainModule().convention(application.getLauncher().getMainModule());
+                task.getMainClass().convention(application.getLauncher().getMainClass());
             });
 
             var jlinkTask = project.getTasks().register("jlink", JlinkTask.class, task -> {
@@ -127,7 +124,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.setDescription("Generates a customized runtime image");
                 task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jlink.exe" : "bin/jlink")));
                 task.getModulePath().from(modulePath);
-                task.getAddModules().add(application.getMainModule().orElse(modulesProvider));
+                task.getAddModules().add(application.getLauncher().getMainModule().orElse(modulesProvider));
                 task.getNoHeaderFiles().convention(true);
                 task.getNoManPages().convention(true);
                 task.getStripDebug().convention(true);
@@ -143,22 +140,28 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
 
             project.getTasks().withType(JpackageTask.class, task -> {
                 task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jpackage.exe" : "bin/jpackage")));
-                task.getAppName().convention(extension.getMetadata().getName());
-                task.getAppDescription().convention(extension.getMetadata().getDescription());
-                task.getAppVersion().convention(extension.getMetadata().getVersion());
-                task.getIcon().convention(extension.getMetadata().getIcon());
-                task.getCopyright().convention(extension.getMetadata().getCopyright());
-                task.getVendor().convention(extension.getMetadata().getVendor());
+                task.getAppName().convention(application.getMetadata().getName());
+                task.getAppDescription().convention(application.getMetadata().getDescription());
+                task.getAppVersion().convention(application.getMetadata().getVersion());
+                task.getIcon().convention(application.getMetadata().getIcon());
+                task.getCopyright().convention(application.getMetadata().getCopyright());
+                task.getVendor().convention(application.getMetadata().getVendor());
             });
 
             var jpackageImageTask = project.getTasks().register("appImage", ApplicationImageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app image");
                 task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
-                task.getAppContent().from(extension.getImage().getContent());
+                task.getAppContent().from(application.getContent());
                 task.getModularity().convention(modularity);
-                task.getJavaOptions().convention(extension.getImage().getJvmArgs());
-                extension.getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
+                task.getJavaOptions().convention(application.getLauncher().getJavaOptions());
+                task.getArguments().convention(application.getLauncher().getArguments());
+                application.getLauncher().getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
+                if (isMac(osName.get())) {
+                    task.getMacAppCategory().convention(application.getMac().getAppCategory());
+                    task.getMacPackageName().convention(application.getMac().getPackageName());
+                    task.getMacPackageIdentifier().convention(application.getMac().getPackageID());
+                }
                 task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
             });
@@ -167,20 +170,20 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app installer");
                 var currentType = osName.flatMap((os) -> {
-                    if (isWindows(os)) return extension.getInstaller().getType().getWindows().map(Enum::name);
-                    if (isMac(os)) return extension.getInstaller().getType().getMac().map(Enum::name);
-                    return extension.getInstaller().getType().getLinux().map(Enum::name);
+                    if (isWindows(os)) return application.getWindows().getInstallerType().map(Enum::name);
+                    if (isMac(os)) return application.getMac().getInstallerType().map(Enum::name);
+                    return application.getLinux().getInstallerType().map(Enum::name);
                 });
                 task.getType().convention(currentType);
                 task.getApplicationImage().convention(jpackageImageTask.flatMap(JpackageTask::getDest));
-                task.getAboutUrl().convention(extension.getInstaller().getAboutUrl());
-                task.getLicenseFile().convention(extension.getInstaller().getLicenseFile());
-                task.getFileAssociations().convention(extension.getInstaller().getFileAssociations());
-                task.getInstallDir().convention(extension.getInstaller().getInstallDir());
-                task.getResourceDir().convention(extension.getInstaller().getResourceDir());
-                task.getDMGContent().convention(extension.getInstaller().getDmcContent());
-                extension.getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
-                task.getLauncherAsService().convention(extension.getInstaller().getLauncherAsService());
+                task.getAboutUrl().convention(application.getMetadata().getAboutUrl());
+                task.getLicenseFile().convention(application.getMetadata().getLicenseFile());
+                task.getFileAssociations().convention(application.getFileAssociations());
+                task.getInstallDir().convention(application.getInstallDir());
+                task.getResourceDir().convention(application.getResourceDir());
+                task.getDMGContent().convention(application.getMac().getDmgContent());
+                application.getLauncher().getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
+                task.getLauncherAsService().convention(application.getLauncher().getLauncherAsService());
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));
             });
         });

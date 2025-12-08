@@ -29,6 +29,7 @@ class GradleJpackagePluginFunctionalTest {
     @Test void canRunTask() throws IOException {
         String buildScript = """
             plugins {
+                id('java')
                 id('de.infolektuell.jpackage')
             }
             """;
