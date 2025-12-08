@@ -140,7 +140,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
 
             project.getTasks().withType(JpackageTask.class, task -> {
                 task.getExecutable().convention(installationPath.zip(osName, (p, os) -> p.file(isWindows(os) ? "bin/jpackage.exe" : "bin/jpackage")));
-                task.getExecutable().convention(installationPath.map(p -> p.file("bin/jpackage")));
                 task.getAppName().convention(extension.getMetadata().getName());
                 task.getAppDescription().convention(extension.getMetadata().getDescription());
                 task.getAppVersion().convention(extension.getMetadata().getVersion());
