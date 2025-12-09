@@ -1,49 +1,49 @@
-Verwendung: jlink <Optionen> --module-path <Modulpfad> --add-modules <Modul>[,<Modul>...]
-Mögliche Optionen:
-      --add-modules <Mod>[,<Mod>...]    Root-Module, die zusätzlich zu den anfänglichen
-                                        Modulen aufgelöst werden. <Mod> kann auch ALL-MODULE-PATH sein.
-      --bind-services                   Bindet Serviceprovidermodule und ihre
-                                        Abhängigkeiten ein
-      --compress <compress>             Zu verwendende Komprimierung für Ressourcen:
-                                        Zulässige Werte:
-                                        zip-[0-9], wobei "zip-0" für keine Komprimierung
-                                        und "zip-9" für die beste Komprimierung steht.
-                                        Standardwert ist "zip-6".
-                                        Veraltete Werte, die in einem zukünftigen Release entfernt werden:
-                                        0: Keine Komprimierung. Entspricht "zip-0".
-                                        1: Gemeinsame Verwendung konstanter Zeichenfolgen
-                                        2: Entspricht "zip-6".
-      --disable-plugin <Plug-in-Name>     Deaktiviert das angegebene Plug-in
-      --endian <little|big>             Bytereihenfolge des generierten jimage
-                                        (Standard: nativ)
-  -h, --help, -?                        Gibt diese Hilfemeldung aus
-      --ignore-signing-information      Unterdrückt einen schwerwiegenden Fehler, wenn signierte
-                                        modulare JAR-Dateien in das Image eingebunden werden.
-                                        Die signaturbezogenen Dateien der signierten
-                                        modularen JAR-Dateien werden nicht in das
-                                        Laufzeitimage kopiert.
-      --launcher <Name>=<Modul>[/<Hauptklasse>]
-                                        Fügt einen Launcher-Befehl mit dem angegebenen
-                                        Namen für das Modul und die Hauptklasse hinzu,
-                                        falls angegeben
-      --limit-modules <Mod>[,<Mod>...]  Begrenzt den Bereich der beobachtbaren
-                                        Module
-      --list-plugins                    Listet die verfügbaren Plug-ins auf
-  -p, --module-path <Pfad>              Modulpfad.
-                                        Wird er nicht angegeben, wird das jmods-Verzeichnis des JDK
-                                        verwendet, falls vorhanden. Wird er angegeben,
-                                        aber enthält er nicht das Modul java.base,
-                                        wird das jmods-Verzeichnis des JDK hinzugefügt,
-                                        falls vorhanden.
-      --no-header-files                 Schließt Headerdateien aus
-      --no-man-pages                    Schließt Manpages aus
-      --output <Pfad>                   Ort des Ausgabepfads
-      --save-opts <Dateiname>            Speichert jlink-Optionen in der angegebenen Datei
-  -G, --strip-debug                     Entfernt Debuginformationen
-      --suggest-providers [<Name>,...]  Schlägt Provider vor, welche die angegebenen
-                                        Servicetypen aus dem Modulpfad implementieren
-  -v, --verbose                         Aktiviert Verbose-Tracing
-      --version                         Versionsinformationen
-      @<Dateiname>                       Liest Optionen aus der Datei
-Funktionen:
-      Verknüpfung von Laufzeitimage deaktiviert
+Usage: jlink <options> --module-path <modulepath> --add-modules <module>[,<module>...]
+Possible options include:
+      --add-modules <mod>[,<mod>...]    Root modules to resolve in addition to the
+                                        initial modules. <mod> can also be ALL-MODULE-PATH.
+      --bind-services                   Link in service provider modules and
+                                        their dependences
+      --compress <compress>             Compression to use in compressing resources:
+                                        Accepted values are:
+                                        zip-[0-9], where zip-0 provides no compression,
+                                        and zip-9 provides the best compression.
+                                        Default is zip-6.
+                                        Deprecated values to be removed in a future release:
+                                        0:  No compression. Equivalent to zip-0.
+                                        1:  Constant String Sharing
+                                        2:  Equivalent to zip-6.
+      --disable-plugin <pluginname>     Disable the plugin mentioned
+      --endian <little|big>             Byte order of generated jimage
+                                        (default:native)
+  -h, --help, -?                        Print this help message
+      --ignore-signing-information      Suppress a fatal error when signed
+                                        modular JARs are linked in the image.
+                                        The signature related files of the
+                                        signed modular JARs are not copied to
+                                        the runtime image.
+      --launcher <name>=<module>[/<mainclass>]
+                                        Add a launcher command of the given
+                                        name for the module and the main class
+                                        if specified
+      --limit-modules <mod>[,<mod>...]  Limit the universe of observable
+                                        modules
+      --list-plugins                    List available plugins
+  -p, --module-path <path>              Module path.
+                                        If not specified, the JDKs jmods directory
+                                        will be used, if it exists. If specified,
+                                        but it does not contain the java.base module,
+                                        the JDKs jmods directory will be added,
+                                        if it exists.
+      --no-header-files                 Exclude include header files
+      --no-man-pages                    Exclude man pages
+      --output <path>                   Location of output path
+      --save-opts <filename>            Save jlink options in the given file
+  -G, --strip-debug                     Strip debug information
+      --suggest-providers [<name>,...]  Suggest providers that implement the
+                                        given service types from the module path
+  -v, --verbose                         Enable verbose tracing
+      --version                         Version information
+      @<filename>                       Read options from file
+Capabilities:
+      Linking from run-time image disabled

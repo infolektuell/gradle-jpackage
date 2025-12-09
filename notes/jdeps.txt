@@ -1,127 +1,127 @@
-Verwendung: jdeps <Optionen> <Pfad ...>]
-<Pfad> kann ein Pfad zu einer Klassendatei, einem Verzeichnis oder einer JAR-Datei sein.
+Usage: jdeps <options> <path ...>]
+<path> can be a pathname to a .class file, a directory, a JAR file.
 
-Mögliche Optionen:
-  -h -? --help                  Gibt diese Hilfemeldung aus
-  -dotoutput <Verzeichnis>
-  --dot-output <Verzeichnis>            Zielverzeichnis für DOT-Dateiausgabe
-  -s       -summary             Gibt nur die Abhängigkeitsübersicht aus.
-  -v       -verbose             Gibt alle Abhängigkeiten auf Klassenebene aus
-                                Äquivalent zu -verbose:class -filter:none.
-  -verbose:package              Gibt standardmäßig Abhängigkeiten auf Packageebene, ausgenommen
-                                Abhängigkeiten innerhalb eines Packages, aus
-  -verbose:class                Gib standardmäßig Abhängigkeiten auf Klassenebene, ausgenommen
-                                Abhängigkeiten innerhalb einer Klasse, aus
+Possible options include:
+  -h -? --help                  Print this help message
+  -dotoutput <dir>
+  --dot-output <dir>            Destination directory for DOT file output
+  -s       -summary             Print dependency summary only.
+  -v       -verbose             Print all class level dependences
+                                Equivalent to -verbose:class -filter:none.
+  -verbose:package              Print package-level dependences excluding
+                                dependences within the same package by default
+  -verbose:class                Print class-level dependences excluding
+                                dependences within the same package by default
   -apionly
-  --api-only                    Beschränkt die Analyse auf APIs, d.h. Abhängigkeiten
-                                von der Signatur öffentlicher und geschützter
-                                Mitglieder von öffentlichen Klassen, einschließlich von
-                                Feldtyp, Methodenparametertypen, Rückgabetyp,
-                                aktivierten Ausnahmetypen usw.
+  --api-only                    Restrict analysis to APIs i.e. dependences
+                                from the signature of public and protected
+                                members of public classes including field
+                                type, method parameter types, returned type,
+                                checked exception types etc.
   -jdkinternals
-  --jdk-internals               Findet Abhängigkeiten auf Klassenebene auf JDK-internen
-                                APIs. Analysiert standardmäßig alle Klassen
-                                in --class-path und Eingabedateien, es sei denn, die Option
-                                -include ist angegeben. Diese Option kann nicht mit
-                                den Optionen -p, -e und -s verwendet werden.
-                                WARNUNG: Auf JDK-interne APIs besteht kein Zugriff.
-  -cp <Pfad>
-  -classpath <Pfad>
-  --class-path <Pfad>           Gibt an, wo sich die Klassendateien befinden
-  --module-path <Modulpfad>   Gibt den Modulpfad an
-  --upgrade-module-path <Modulpfad>  Gibt den Upgrademodulpfad an
-  --system <Java-Home>          Gibt einen alternativen Systemmodulpfad an
-  --add-modules <Modulname>[,<Modulname>...]
-                                Fügt dem Root-Set Module zur Analyse hinzu
-  --multi-release <Version>     Gibt bei Verarbeitung von Multi-Release-JAR-Dateien
-                                die Version an. <Version> muss eine
-                                Ganzzahl >= 9 oder ein Basiswert sein.
-  -q       -quiet               Unterdrückt Warnmeldungen
-  -version --version            Versionsinformationen
+  --jdk-internals               Finds class-level dependences on JDK internal
+                                APIs. By default, it analyzes all classes
+                                on --class-path and input files unless -include
+                                option is specified. This option cannot be
+                                used with -p, -e and -s options.
+                                WARNING: JDK internal APIs are inaccessible.
+  -cp <path>
+  -classpath <path>
+  --class-path <path>           Specify where to find class files
+  --module-path <module path>   Specify module path
+  --upgrade-module-path <module path>  Specify upgrade module path
+  --system <java-home>          Specify an alternate system module path
+  --add-modules <module-name>[,<module-name>...]
+                                Adds modules to the root set for analysis
+  --multi-release <version>     Specifies the version when processing
+                                multi-release jar files.  <version> should
+                                be integer >= 9 or base.
+  -q       -quiet               Suppress warning messages
+  -version --version            Version information
 
-Optionen für die Modulabhängigkeitsanalyse:
-  -m <Modulname>
-  --module <Modulname>        Gibt das Root-Modul für die Analyse an
-  --generate-module-info <Verzeichnis>  Generiert module-info.java im angegebenen
-                                Verzeichnis. Die angegebenen JAR-Dateien werden
-                                analysiert. Diese Option kann nicht zusammen mit
-                                --dot-output oder --class-path verwendet werden. Verwenden Sie
-                                für offene Module die Option --generate-open-module.
-  --generate-open-module <Verzeichnis>  Generiert module-info.java für die angegebenen
-                                JAR-Dateien im angegebenen Verzeichnis als
-                                offene Module. Diese Option kann nicht mit
-                                --dot-output oder --class-path verwendet werden.
-  --check <Modulname>[,<Modulname>...
-                                Analysiert die Abhängigkeit der angegebenen Module
-                                Gibt den Moduldeskriptor, die aus der Analyse resultierenden
-                                Modulabhängigkeiten und das Diagramm nach
-                                der Übergangsreduktion aus. Identifiziert auch
-                                nicht verwendete qualifizierte Exporte.
-  --list-deps                   Listet die Modulabhängigkeiten auf. Gibt auch
-                                interne API-Packages aus, falls referenziert.
-                                Diese Option analysiert transitiv die Librarys im
-                                Classpath und im Modulpfad, falls referenziert.
-                                Verwenden Sie die Option --no-recursive für eine
-                                nicht transitive Abhängigkeitsanalyse.
-  --list-reduced-deps           Gleich wie --list-deps, listet jedoch die Kanten für die
-                                implizierten Lesevorgänge aus dem Moduldiagramm nicht auf.
-                                Wenn Modul M1 M2 liest und M2 über M3
-                                transitiv sein muss, dann wird impliziert, dass M1 M3 liest,
-                                und dies wird im Diagramm nicht angezeigt.
-  --print-module-deps           Gleich wie --list-reduced-deps, und es wird
-                                eine kommagetrennte Liste von Modulabhängigkeiten ausgegeben.
-                                Dies Ausgabe kann von der jlink-Option --add-modules
-                                verwendet werden, um ein benutzerdefiniertes Image zu erstellen,
-                                das diese Module und ihre transitiven Abhängigkeiten enthält.
-  --ignore-missing-deps         Ignoriert fehlende Abhängigkeiten.
+Module dependence analysis options:
+  -m <module-name>
+  --module <module-name>        Specify the root module for analysis
+  --generate-module-info <dir>  Generate module-info.java under the specified
+                                directory. The specified JAR files will be
+                                analyzed. This option cannot be used with
+                                --dot-output or --class-path. Use 
+                                --generate-open-module option for open modules.
+  --generate-open-module <dir>  Generate module-info.java for the specified
+                                JAR files under the specified directory as
+                                open modules. This option cannot be used with
+                                --dot-output or --class-path.
+  --check <module-name>[,<module-name>...
+                                Analyze the dependence of the specified modules
+                                It prints the module descriptor, the resulting
+                                module dependences after analysis and the
+                                graph after transition reduction.  It also
+                                identifies any unused qualified exports.
+  --list-deps                   Lists the module dependences.  It also prints
+                                any internal API packages if referenced.
+                                This option transitively analyzes libraries on
+                                class path and module path if referenced.
+                                Use --no-recursive option for non-transitive
+                                dependency analysis.
+  --list-reduced-deps           Same as --list-deps with not listing
+                                the implied reads edges from the module graph.
+                                If module M1 reads M2, and M2 requires
+                                transitive on M3, then M1 reading M3 is implied
+                                and is not shown in the graph.
+  --print-module-deps           Same as --list-reduced-deps with printing
+                                a comma-separated list of module dependences.
+                                This output can be used by jlink --add-modules
+                                in order to create a custom image containing
+                                those modules and their transitive dependences.
+  --ignore-missing-deps         Ignore missing dependences.
 
-Optionen zum Filtern von Abhängigkeiten:
-  -p <Pkg>
-  -package <Pkg>
-  --package <Pkg>               Findet Abhängigkeiten, die mit dem angegebenen
-                                Packagenamen übereinstimmen (kann mehrfach angegeben werden).
-  -e <Regex>
-  -regex <Regex>
-  --regex <Regex>               Findet Abhängigkeiten, die dem angegebenen Muster entsprechen.
-  --require <Modulname>       Findet Abhängigkeiten, die dem angegebenen Modulnamen
-                                entsprechen (kann mehrfach angegeben werden). --package,
-                                --regex, --require schließen sich gegenseitig aus.
-  -f <Regex> -filter <Regex>    Filtert Abhängigkeiten nach dem angegebenen
-                                Muster. Bei Angabe mehrerer Muster wird das
-                                letzte Muster verwendet.
-  -filter:package               Filtert Abhängigkeiten innerhalb eines Packages.
-                                Dies ist die Standardoption.
-  -filter:archive               Filtert Abhängigkeiten innerhalb eines Archivs.
-  -filter:module                Filtert Abhängigkeiten innerhalb eines Moduls.
-  -filter:none                  Kein Filtern nach -filter:package oder -filter:archive
-                                Die mit der Option -filter angegebene Filterung
-                                wird jedoch angewendet.
+Options to filter dependences:
+  -p <pkg>
+  -package <pkg>
+  --package <pkg>               Finds dependences matching the given package
+                                name (may be given multiple times).
+  -e <regex>
+  -regex <regex>
+  --regex <regex>               Finds dependences matching the given pattern.
+  --require <module-name>       Finds dependences matching the given module
+                                name (may be given multiple times). --package,
+                                --regex, --require are mutual exclusive.
+  -f <regex> -filter <regex>    Filter dependences matching the given
+                                pattern. If given multiple times, the last
+                                one will be used.
+  -filter:package               Filter dependences within the same package.
+                                This is the default.
+  -filter:archive               Filter dependences within the same archive.
+  -filter:module                Filter dependences within the same module.
+  -filter:none                  No -filter:package and -filter:archive
+                                filtering.  Filtering specified via the
+                                -filter option still applies.
 
-  --missing-deps                Findet fehlende Abhängigkeiten. Diese Option
-                                kann nicht mit den Optionen -p, -e und -s verwendet werden.
+  --missing-deps                Finds missing dependences.  This option
+                                cannot be used with -p, -e and -s options.
 
-Optionen zum Filtern der zu analysierenden Klassen:
-  -include <Regex>              Beschränkt die Analyse auf Klassen, die dem Muster entsprechen
-                                Diese Option filtert die Liste der zu analysierenden
-                                Klassen. Sie kann zusammen mit -p und -e verwendet
-                                werden, die das Muster auf die Abhängigkeiten anwenden
+Options to filter classes to be analyzed:
+  -include <regex>              Restrict analysis to classes matching pattern
+                                This option filters the list of classes to
+                                be analyzed.  It can be used together with
+                                -p and -e which apply pattern to the dependences
   -R
-  --recursive                   Traversiert rekursiv alle Laufzeitabhängigkeiten.
-                                Die Option -R impliziert -filter:none. Falls eine Option -p,
-                                -e, -f angegeben ist, werden nur die übereinstimmenden
-                                Abhängigkeiten analysiert.
-  --no-recursive                Kein rekursives Traversieren von Abhängigkeiten.
+  --recursive                   Recursively traverse all run-time dependences.
+                                The -R option implies -filter:none.  If -p,
+                                -e, -f option is specified, only the matching
+                                dependences are analyzed.
+  --no-recursive                Do not recursively traverse dependences.
   -I
-  --inverse                     Analysiert die Abhängigkeiten gemäß den anderen angegebenen
-                                Optionen und findet alle Artefakte, die direkt und
-                                indirekt von den übereinstimmenden Knoten abhängen.
-                                Dies entspricht der Umkehrung der
-                                Analyse der Kompilierungszeitansicht und gibt die
-                                Abhängigkeitsübersicht aus. Diese Option muss mit der Option
-                                --require, --package oder --regex verwendet werden.
-  --compile-time                Kompilierungszeitansicht transitiver Abhängigkeiten,
-                                d.h. Kompilierungszeitansicht der Option -R.
-                                Analysiert die Abhängigkeiten gemäß den anderen angegebenen Optionen
-                                Wird eine Abhängigkeit von einem Verzeichnis,
-                                einer JAR-Datei oder einem Modul gefunden, werden alle Klassen im 
-                                entsprechenden beinhaltenden Archiv analysiert.
+  --inverse                     Analyzes the dependences per other given options
+                                and then find all artifacts that directly
+                                and indirectly depend on the matching nodes.
+                                This is equivalent to the inverse of
+                                compile-time view analysis and print
+                                dependency summary.  This option must use
+                                with --require, --package or --regex option.
+  --compile-time                Compile-time view of transitive dependences
+                                i.e. compile-time view of -R option.
+                                Analyzes the dependences per other given options
+                                If a dependence is found from a directory,
+                                a JAR file or a module, all classes in that 
+                                containing archive are analyzed.
