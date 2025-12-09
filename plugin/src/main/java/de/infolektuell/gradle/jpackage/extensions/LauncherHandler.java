@@ -9,9 +9,24 @@ import org.gradle.api.provider.Provider;
 import org.jspecify.annotations.NonNull;
 
 public abstract class LauncherHandler {
+    /**
+     * Additional command line arguments for the application's main class
+     */
     public abstract ListProperty<@NonNull String> getArguments();
+
+    /**
+     * Additional JVM arguments for the launcher
+     */
     public abstract ListProperty<@NonNull String> getJavaOptions();
+
+    /**
+     * The application's main module
+     */
     public abstract Property<@NonNull String> getMainModule();
+
+    /**
+     * The application's main class
+     */
     public abstract Property<@NonNull String> getMainClass();
     public abstract Property<@NonNull Boolean> getLauncherAsService();
 
