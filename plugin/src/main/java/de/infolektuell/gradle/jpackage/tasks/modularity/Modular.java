@@ -8,7 +8,4 @@ import org.jspecify.annotations.NonNull;
 public non-sealed interface Modular extends Modularity {
     @Input
     Property<@NonNull String> getMainModule();
-    @Optional
-    @Input
-    Property<@NonNull String> getMainClass();
 }
