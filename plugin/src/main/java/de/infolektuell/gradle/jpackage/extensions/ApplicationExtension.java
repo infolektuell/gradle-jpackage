@@ -66,6 +66,7 @@ public abstract class ApplicationExtension {
      * @return Forwards to `getMetadata().getName()`.
      * @deprecated This exists for compatibility with the application plugin.
      */
+    @Deprecated
     public Property<@NonNull String> getApplicationName() {
         return getMetadata().getName();
     }
@@ -75,6 +76,7 @@ public abstract class ApplicationExtension {
      * @return Forwards to `getLauncher().getMainModule()`.
      * @deprecated This exists for compatibility with the application plugin.
      */
+    @Deprecated
     public Property<@NonNull String> getMainModule() {
         return getLauncher().getMainModule();
     }
@@ -84,6 +86,7 @@ public abstract class ApplicationExtension {
      * @return Forwards to `getLauncher().getMainClass()`.
      * @deprecated This exists for compatibility with the application plugin.
      */
+    @Deprecated
     public Property<@NonNull String> getMainClass() {
         return getLauncher().getMainClass();
     }
@@ -93,6 +96,7 @@ public abstract class ApplicationExtension {
      * @return Forwards to `getLauncher().getJavaOptions()`.
      * @deprecated This exists for compatibility with the application plugin.
      */
+    @Deprecated
     public ListProperty<@NonNull String> getApplicationDefaultJvmArgs() {
         return getLauncher().getJavaOptions();
     }
