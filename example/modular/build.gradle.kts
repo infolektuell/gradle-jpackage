@@ -27,8 +27,10 @@ java {
 
 application {
     metadata.name = "Sample"
-    mainModule = "example.app"
-    mainClass = "org.example.App"
+    launcher {
+        mainModule = "example.app"
+        mainClass = "org.example.App"
+    }
 }
 
 tasks.named<Test>("test") {

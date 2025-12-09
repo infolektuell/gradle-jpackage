@@ -29,7 +29,7 @@ java {
 application {
     metadata.name = "Sample"
     // Define the main class for the application.
-    mainClass = "org.example.App"
+    launcher.mainClass = "org.example.App"
 }
 
 tasks.named<Test>("test") {
