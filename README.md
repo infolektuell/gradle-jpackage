@@ -79,6 +79,10 @@ fun main(vararg args: String) {
 }
 ```
 
+### Issues
+
+If you run into a situation where this plugin conflicts with another one, you're invited to [create an issue](https://github.com/infolektuell/gradle-jpackage/issues/new) and describe your problem.
+
 ## Change history
 
 See GitHub Releases or the [changelog file](CHANGELOG.md) for releases and changes.
