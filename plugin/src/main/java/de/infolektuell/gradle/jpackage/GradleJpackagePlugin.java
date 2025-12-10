@@ -58,6 +58,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             data.getDescription().convention(project.getDescription());
             data.getVendor().convention(project.getGroup().toString());
         });
+        application.getLinux().getPackageName().convention(application.getPackageName());
+        application.getMac().getPackageName().convention(application.getPackageName());
+        application.getLinux().getShortcut().convention(application.getShortcut());
+        application.getWindows().getShortcut().convention(application.getShortcut());
         application.getLauncher().getLauncherAsService().convention(false);
 
         project.getPluginManager().withPlugin("java", javaPlugin -> {
@@ -167,8 +171,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getJavaOptions().convention(application.getLauncher().getJavaOptions());
                 Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
                     if (isWindows(os)) {
-                        var win = project.getObjects().newInstance(JpackageWindowsOptions.class);
-                        return win;
+                        return project.getObjects().newInstance(JpackageWindowsOptions.class);
                     } else if (isMac(os)) {
                         var mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
                         mac.getMacAppCategory().convention(application.getMac().getAppCategory());
@@ -176,8 +179,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                         mac.getMacPackageIdentifier().convention(application.getMac().getPackageID());
                         return mac;
                     } else {
-                        var linux = project.getObjects().newInstance(JpackageLinuxOptions.class);
-                        return linux;
+                        return project.getObjects().newInstance(JpackageLinuxOptions.class);
                     }
                 });
                 task.getPlatformOptions().convention(platformOptions);
@@ -202,6 +204,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
                     if (isWindows(os)) {
                         var win = project.getObjects().newInstance(JpackageWindowsOptions.class);
+                        win.getWinShortcut().convention(application.getWindows().getShortcut());
                         return win;
                     } else if (isMac(os)) {
                         var mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
@@ -209,6 +212,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                         return mac;
                     } else {
                         var linux = project.getObjects().newInstance(JpackageLinuxOptions.class);
+                        linux.getLinuxPackageName().convention(application.getLinux().getPackageName());
+                        linux.getLinuxShortcut().convention(application.getLinux().getShortcut());
                         return linux;
                     }
                 });

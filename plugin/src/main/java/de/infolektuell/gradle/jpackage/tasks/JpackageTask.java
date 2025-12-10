@@ -228,6 +228,14 @@ public abstract class JpackageTask extends JDKToolTask {
 
             switch (getPlatformOptions().getOrNull()) {
                 case JpackageLinuxOptions linux -> {
+                    if (linux.getLinuxPackageName().isPresent()) spec.args("--linux-package-name", linux.getLinuxPackageName().get());
+                    if (linux.getLinuxDebMaintainer().isPresent()) spec.args("--linux-deb-maintainer", linux.getLinuxDebMaintainer().get());
+                    if (linux.getLinuxMenuGroup().isPresent()) spec.args("--linux-menu-group", linux.getLinuxMenuGroup().get());
+                    if (linux.getLinuxPackageDeps().isPresent()) spec.args("--linux-package-deps", linux.getLinuxPackageDeps().get());
+                    if (linux.getLinuxRPMLicenseType().isPresent()) spec.args("--linux-rpm-license-type", linux.getLinuxRPMLicenseType().get());
+                    if (linux.getLinuxAppRelease().isPresent()) spec.args("--linux-app-release", linux.getLinuxAppRelease().get());
+                    if (linux.getLinuxAppCategory().isPresent()) spec.args("--linux-app-category", linux.getLinuxAppCategory().get());
+                    if (linux.getLinuxShortcut().getOrElse(false)) spec.args("--linux-shortcut");
                 }
                 case JpackageMacOSOptions mac -> {
                     if (mac.getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());

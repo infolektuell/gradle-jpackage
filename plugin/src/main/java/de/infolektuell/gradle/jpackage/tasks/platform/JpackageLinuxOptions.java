@@ -8,6 +8,30 @@ import org.jspecify.annotations.NonNull;
 public non-sealed interface JpackageLinuxOptions extends JpackagePlatformOptions {
     @Optional
     @Input
+    Property<@NonNull String> getLinuxPackageName();
+
+    @Optional
+    @Input
+    Property<@NonNull String> getLinuxDebMaintainer();
+
+    @Optional
+    @Input
+    Property<@NonNull String> getLinuxMenuGroup();
+
+    @Optional
+    @Input
+    Property<@NonNull String> getLinuxPackageDeps();
+
+    @Optional
+    @Input
+    Property<@NonNull String> getLinuxRPMLicenseType();
+
+    @Optional
+    @Input
+    Property<@NonNull String> getLinuxAppRelease();
+
+    @Optional
+    @Input
     Property<@NonNull String> getLinuxAppCategory();
 
     @Optional

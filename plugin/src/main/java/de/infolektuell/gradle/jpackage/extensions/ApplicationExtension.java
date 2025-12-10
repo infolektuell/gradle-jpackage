@@ -60,6 +60,8 @@ public abstract class ApplicationExtension {
     public abstract SetProperty<@NonNull RegularFile> getFileAssociations();
     public abstract DirectoryProperty getInstallDir();
     public abstract DirectoryProperty getResourceDir();
+    public abstract Property<@NonNull String> getPackageName();
+    public abstract Property<@NonNull Boolean> getShortcut();
 
     /**
      * The application name.

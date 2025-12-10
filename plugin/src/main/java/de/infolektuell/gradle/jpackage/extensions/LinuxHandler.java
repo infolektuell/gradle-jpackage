@@ -15,4 +15,6 @@ public abstract class LinuxHandler {
     }
 
     public abstract Property<@NonNull InstallerType> getInstallerType();
+    public abstract Property<@NonNull String> getPackageName();
+    public abstract Property<@NonNull Boolean> getShortcut();
 }

@@ -15,4 +15,5 @@ public abstract class WindowsHandler {
     }
 
     public abstract Property<@NonNull InstallerType> getInstallerType();
+    public abstract Property<@NonNull Boolean> getShortcut();
 }
