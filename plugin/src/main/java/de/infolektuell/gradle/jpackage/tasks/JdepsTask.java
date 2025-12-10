@@ -98,7 +98,7 @@ public abstract class JdepsTask extends JDKToolTask {
                 spec.setStandardOutput(s);
             });
         } catch (Exception e) {
-            throw new RuntimeException("Couldn't write jdeps result to destination file.", e);
+            throw new RuntimeException(e);
         }
         try {
             Files.copy(dest, System.out);

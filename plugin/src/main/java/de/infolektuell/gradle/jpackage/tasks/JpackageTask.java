@@ -210,7 +210,7 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getArguments().isPresent()) getArguments().get().forEach(a -> spec.args("--arguments", a));
             if (getJavaOptions().isPresent()) getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
             switch (getModularity().getOrNull()) {
-                case Modular modular -> spec.args("--module", modular.getMainModule().get());
+                case Modular modular -> spec.args("--module", String.join("/", modular.getMainModule().get(), modular.getMainClass().get()));
                 case NonModular nonModular -> {
                     spec.args("--main-class", nonModular.getMainClass().get());
                     spec.args("--main-jar", nonModular.getMainJar().get().getAsFile().getName());

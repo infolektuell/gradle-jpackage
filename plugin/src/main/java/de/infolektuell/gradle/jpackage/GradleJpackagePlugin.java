@@ -84,8 +84,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 final var launcher = application.getLauncher();
                 if (launcher.getMainModule().isPresent()) {
                     var modular = project.getObjects().newInstance(Modular.class);
-                    var module = launcher.getMainModule().zip(launcher.getMainClass(), (m, c) -> String.join("/", m, c));
-                    modular.getMainModule().convention(module);
+                    modular.getMainModule().convention(launcher.getMainModule());
+                    modular.getMainClass().convention(launcher.getMainClass());
                     return modular;
                 } else {
                     var nonModular = project.getObjects().newInstance(NonModular.class);
