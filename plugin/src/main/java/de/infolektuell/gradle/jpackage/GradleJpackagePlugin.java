@@ -3,6 +3,7 @@ package de.infolektuell.gradle.jpackage;
 import de.infolektuell.gradle.jpackage.extensions.ApplicationExtension;
 import de.infolektuell.gradle.jpackage.tasks.*;
 import de.infolektuell.gradle.jpackage.tasks.modularity.*;
+import de.infolektuell.gradle.jpackage.tasks.platform.*;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.ArchiveOperations;
@@ -73,15 +74,16 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             Provider<@NonNull RegularFile> mainJar = jarTask.flatMap(AbstractArchiveTask::getArchiveFile);
 
             Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
-                if (application.getLauncher().getMainModule().isPresent()) {
+                final var launcher = application.getLauncher();
+                if (launcher.getMainModule().isPresent()) {
                     var modular = project.getObjects().newInstance(Modular.class);
-                    var module = application.getLauncher().getMainModule().zip(application.getLauncher().getMainClass(), (m, c) -> String.join("/", m, c));
+                    var module = launcher.getMainModule().zip(launcher.getMainClass(), (m, c) -> String.join("/", m, c));
                     modular.getMainModule().convention(module);
                     return modular;
                 } else {
                     var nonModular = project.getObjects().newInstance(NonModular.class);
                     nonModular.getMainJar().convention(mainJar);
-                    nonModular.getMainClass().convention(application.getLauncher().getMainClass());
+                    nonModular.getMainClass().convention(launcher.getMainClass());
                     return nonModular;
                 }
             });
@@ -151,38 +153,55 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             var jpackageImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app image");
-                task.getType().convention("app-image");
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
                 task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                 task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
                 task.getAppContent().from(application.getContent());
                 task.getModularity().convention(modularity);
-                task.getJavaOptions().convention(application.getLauncher().getJavaOptions());
-                task.getArguments().convention(application.getLauncher().getArguments());
                 application.getLauncher().getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
-                if (isMac(osName.get())) {
-                    task.getMacAppCategory().convention(application.getMac().getAppCategory());
-                    task.getMacPackageName().convention(application.getMac().getPackageName());
-                    task.getMacPackageIdentifier().convention(application.getMac().getPackageID());
-                }
+                task.getArguments().convention(application.getLauncher().getArguments());
+                task.getJavaOptions().convention(application.getLauncher().getJavaOptions());
+                Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
+                    if (isWindows(os)) {
+                        var win = project.getObjects().newInstance(JpackageWindowsOptions.class);
+                        return win;
+                    } else if (isMac(os)) {
+                        var mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
+                        mac.getMacAppCategory().convention(application.getMac().getAppCategory());
+                        mac.getMacPackageName().convention(application.getMac().getPackageName());
+                        mac.getMacPackageIdentifier().convention(application.getMac().getPackageID());
+                        return mac;
+                    } else {
+                        var linux = project.getObjects().newInstance(JpackageLinuxOptions.class);
+                        return linux;
+                    }
+                });
+                task.getPlatformOptions().convention(platformOptions);
             });
 
             project.getTasks().register("appInstaller", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app installer");
-                var currentType = osName.flatMap((os) -> {
-                    if (isWindows(os)) return application.getWindows().getInstallerType().map(Enum::name);
-                    if (isMac(os)) return application.getMac().getInstallerType().map(Enum::name);
-                    return application.getLinux().getInstallerType().map(Enum::name);
-                });
-                task.getType().convention(currentType);
                 task.getApplicationImage().convention(jpackageImageTask.flatMap(JpackageTask::getDest));
-                task.getAboutUrl().convention(application.getMetadata().getAboutUrl());
+                task.getAboutURL().convention(application.getMetadata().getAboutUrl());
                 task.getLicenseFile().convention(application.getMetadata().getLicenseFile());
                 task.getFileAssociations().convention(application.getFileAssociations());
                 task.getInstallDir().convention(application.getInstallDir());
                 task.getResourceDir().convention(application.getResourceDir());
-                task.getMacDMGContent().convention(application.getMac().getDmgContent());
+                Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
+                    if (isWindows(os)) {
+                        var win = project.getObjects().newInstance(JpackageWindowsOptions.class);
+                        return win;
+                    } else if (isMac(os)) {
+                        var mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
+                        mac.getMacDMGContent().convention(application.getMac().getDmgContent());
+                        return mac;
+                    } else {
+                        var linux = project.getObjects().newInstance(JpackageLinuxOptions.class);
+                        return linux;
+                    }
+                });
+                task.getPlatformOptions().convention(platformOptions);
                 application.getLauncher().getLaunchers().all(launcher -> task.getAdditionalLaunchers().add(launcher));
                 task.getLauncherAsService().convention(application.getLauncher().getLauncherAsService());
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));

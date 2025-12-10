@@ -1,8 +1,7 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
-import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
+import de.infolektuell.gradle.jpackage.tasks.modularity.*;
+import de.infolektuell.gradle.jpackage.tasks.platform.*;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
 import org.gradle.api.provider.ListProperty;
@@ -10,11 +9,9 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.api.tasks.options.OptionValues;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
-import java.util.List;
 import java.util.regex.Pattern;
 
 public abstract class JpackageTask extends JDKToolTask {
@@ -36,16 +33,6 @@ public abstract class JpackageTask extends JDKToolTask {
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ListProperty<@NonNull RegularFile> getArgFiles();
-
-    @Option(option = "type", description = "The type of package to create")
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getType();
-
-    @OptionValues("type")
-    protected List<String> getTypes() {
-        return List.of("app-image", "exe", "msi", "dmg", "pkg", "deb", "rpm");
-    }
 
     @Option(option = "app-version", description = "Version of the application and/or package")
     @Optional
@@ -143,93 +130,15 @@ public abstract class JpackageTask extends JDKToolTask {
     @Nested
     public abstract Property<@NonNull Modularity> getModularity();
 
-    @Option(option = "mac-package-identifier", description = """
-          An identifier that uniquely identifies the application for macOS
-          Defaults to the main class name.
-          May only use alphanumeric (A-Z,a-z,0-9), hyphen (-), and period (.) characters.
-        """)
     @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacPackageIdentifier();
-
-    @Option(option = "mac-package-name", description = """
-          Name of the application as it appears in the Menu Bar
-          This can be different from the application name.
-          This name must be less than 16 characters long and be suitable for displaying in the menu bar and the application Info window.
-          Defaults to the application name.
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacPackageName();
-
-    @Option(option = "mac-package-signing-prefix", description = "When signing the application package, this value is prefixed to all components that need to be signed that don't have an existing package identifier.")
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacPackageSigningPrefix();
-
-    @Option(option = "mac-sign", description = "Request that the package or the predefined application image be signed.")
-    @Optional
-    @Input
-    public abstract Property<@NonNull Boolean> getMacSign();
-
-    @Option(option = "mac-signing-keychain", description = """
-          Name of the keychain to search for the signing identity
-          If not specified, the standard keychains are used.
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacSigningKeychain();
-
-    @Option(option = "mac-signing-key-user-name", description = """
-          Team or user name portion of Apple signing identities.
-          For direct control of the signing identity used to sign application images or installers use --mac-app-image-sign-identity and/or --mac-installer-sign-identity.
-          This option cannot be combined with --mac-app-image-sign-identity or --mac-installer-sign-identity.
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacSigningKeyUserName();
-
-    @Option(option = "mac-app-image-sign-identity", description = """
-          Identity used to sign application image.
-          This value will be passed directly to --sign option of "codesign" tool.
-          This option cannot be combined with --mac-signing-key-user-name.
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacAppImageSignIdentity();
-
-    @Option(option = "mac-installer-sign-identity", description = """
-          Identity used to sign "pkg" installer.
-          This value will be passed directly to --sign option of "productbuild" tool.
-          This option cannot be combined with --mac-signing-key-user-name.
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacInstallerSignIdentity();
-
-    @Option(option = "mac-app-store", description = "Indicates that the jpackage output is intended for the Mac App Store.")
-    @Optional
-    @Input
-    public abstract Property<@NonNull Boolean> getMacAppStore();
-
-    @Option(option = "mac-entitlements", description = "Path to file containing entitlements to use when signing executables and libraries in the bundle.")
-    @Optional
-    @InputFile
-    public abstract RegularFileProperty getMacEntitlements();
-
-    @Option(option = "mac-app-category", description = """
-          String used to construct LSApplicationCategoryType in application plist.
-          The default value is "utilities".
-        """)
-    @Optional
-    @Input
-    public abstract Property<@NonNull String> getMacAppCategory();
+    @Nested
+    public abstract Property<@NonNull JpackagePlatformOptions> getPlatformOptions();
 
     // Options for creating the application package
     @Option(option = "about-url", description = "URL of the application's home page")
     @Optional
     @Input
-    public abstract Property<@NonNull String> getAboutUrl();
+    public abstract Property<@NonNull String> getAboutURL();
 
     @Option(option = "app-image", description = "Location of the predefined application image that is used to build an installable package or to sign the predefined application image")
     @Optional
@@ -272,22 +181,12 @@ public abstract class JpackageTask extends JDKToolTask {
     @Input
     public abstract Property<@NonNull Boolean> getLauncherAsService();
 
-    @Option(option = "mac-dmg-content", description = """
-          Include all the referenced content in the dmg.
-          This option can be used multiple times.\s
-        """)
-    @Optional
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract DirectoryProperty getMacDMGContent();
-
     @TaskAction
     protected void jpackage() {
         getFileSystemOperations().delete(spec -> spec.delete(getDest()));
 
         exec("jpackage", spec -> {
             getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
-            if (getType().isPresent()) spec.args("--type", getType().get());
             if (getAppVersion().isPresent() && isVersion(getAppVersion().get())) spec.args("--app-version", getAppVersion().get());
             if (getCopyright().isPresent()) spec.args("--copyright", getCopyright().get());
             if (getAppDescription().isPresent()) spec.args("--description", getAppDescription().get());
@@ -311,26 +210,49 @@ public abstract class JpackageTask extends JDKToolTask {
                 }
                 case null -> {}
             }
-            if (getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", getMacPackageIdentifier().get());
-            if (getMacPackageName().isPresent()) spec.args("--mac-package-name", getMacPackageName().get());
-            if (getMacPackageSigningPrefix().isPresent()) spec.args("--mac-package-signing-prefix", getMacPackageSigningPrefix().get());
-            if (getMacSign().getOrElse(false)) spec.args("--mac-sign");
-            if (getMacSigningKeychain().isPresent()) spec.args("--mac-signing-keychain", getMacSigningKeychain().get());
-            if (getMacSigningKeyUserName().isPresent()) spec.args("--mac-signing-key-user-name", getMacSigningKeyUserName().get());
-            if (getMacAppImageSignIdentity().isPresent()) spec.args("--mac-app-image-sign-identity", getMacAppImageSignIdentity().get());
-            if (getMacInstallerSignIdentity().isPresent()) spec.args("--mac-installer-sign-identity", getMacInstallerSignIdentity().get());
-            if (getMacAppStore().isPresent()) spec.args("--mac-app-store");
-            if (getMacEntitlements().isPresent()) spec.args("--mac-entitlements", getMacEntitlements().get());
-            if (getMacAppCategory().isPresent()) spec.args("--mac-app-category", getMacAppCategory().get());
 
             if (getApplicationImage().isPresent()) spec.args("--app-image", getApplicationImage().get());
-            if (getAboutUrl().isPresent()) spec.args("--about-url", getAboutUrl().get());
+            if (getAboutURL().isPresent()) spec.args("--about-url", getAboutURL().get());
             getFileAssociations().get().forEach(f -> spec.args("--file-associations", f));
             if (getInstallDir().isPresent()) spec.args("--install-dir", getInstallDir().get());
             if (getLicenseFile().isPresent()) spec.args("--license-file", getLicenseFile().get());
             if (getResourceDir().isPresent()) spec.args("--resource-dir", getResourceDir().get());
             if (getLauncherAsService().getOrElse(false)) spec.args("--launcher-as-service");
-            if (getMacDMGContent().isPresent()) spec.args("--dmg-content", getMacDMGContent().get());
+
+            switch (getPlatformOptions().getOrNull()) {
+                case JpackageMacOSOptions mac -> {
+                    spec.args("--type", mac.getType().map(JpackageMacOSOptions.InstallerType::toString).getOrElse("app-image"));
+                    if (mac.getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());
+                    if (mac.getMacPackageName().isPresent()) spec.args("--mac-package-name", mac.getMacPackageName().get());
+                    if (mac.getMacPackageSigningPrefix().isPresent()) spec.args("--mac-package-signing-prefix", mac.getMacPackageSigningPrefix().get());
+                    if (mac.getMacSign().getOrElse(false)) spec.args("--mac-sign");
+                    if (mac.getMacSigningKeychain().isPresent()) spec.args("--mac-signing-keychain", mac.getMacSigningKeychain().get());
+                    if (mac.getMacSigningKeyUserName().isPresent()) spec.args("--mac-signing-key-user-name", mac.getMacSigningKeyUserName().get());
+                    if (mac.getMacAppImageSignIdentity().isPresent()) spec.args("--mac-app-image-sign-identity", mac.getMacAppImageSignIdentity().get());
+                    if (mac.getMacInstallerSignIdentity().isPresent()) spec.args("--mac-installer-sign-identity", mac.getMacInstallerSignIdentity().get());
+                    if (mac.getMacAppStore().isPresent()) spec.args("--mac-app-store");
+                    if (mac.getMacEntitlements().isPresent()) spec.args("--mac-entitlements", mac.getMacEntitlements().get());
+                    if (mac.getMacAppCategory().isPresent()) spec.args("--mac-app-category", mac.getMacAppCategory().get());
+                    if (mac.getMacDMGContent().isPresent()) spec.args("--dmg-content", mac.getMacDMGContent().get());
+                }
+                case JpackageLinuxOptions linux -> {
+                    spec.args("--type", linux.getType().map(JpackageLinuxOptions.InstallerType::toString).getOrElse("app-image"));
+                }
+                case JpackageWindowsOptions win -> {
+                    spec.args("--type", win.getType().map(JpackageWindowsOptions.InstallerType::toString).getOrElse("app-image"));
+                    if (win.getWinConsole().getOrElse(false)) spec.args("--win-console");
+                    if (win.getWinDirChooser().getOrElse(false)) spec.args("--win-dir-chooser");
+                    if (win.getWinHelpURL().isPresent()) spec.args("--win-help-url", win.getWinHelpURL().get());
+                    if (win.getWinMenu().getOrElse(false)) spec.args("win-menu");
+                    if (win.getWinMenuGroup().isPresent()) spec.args("--win-menu-group", win.getWinMenuGroup().get());
+                    if (win.getWinPerUserInstall().getOrElse(false)) spec.args("--win-per-user-install");
+                    if (win.getWinShortcut().getOrElse(false)) spec.args("--win-shortcut");
+                    if (win.getWinShortcutPrompt().getOrElse(false)) spec.args("--win-shortcut-prompt");
+                    if (win.getWinUpdateURL().isPresent()) spec.args("--win-update-url", win.getWinUpdateURL().get());
+                    if (win.getWinUpgradeUUID().isPresent()) spec.args("--win-upgrade-uuid", win.getWinUpgradeUUID().get());
+                }
+                case null -> {}
+            }
         });
     }
 }
