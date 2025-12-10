@@ -1,6 +1,9 @@
 package de.infolektuell.gradle.jpackage;
 
 import de.infolektuell.gradle.jpackage.extensions.ApplicationExtension;
+import de.infolektuell.gradle.jpackage.extensions.LinuxHandler;
+import de.infolektuell.gradle.jpackage.extensions.MacHandler;
+import de.infolektuell.gradle.jpackage.extensions.WindowsHandler;
 import de.infolektuell.gradle.jpackage.tasks.*;
 import de.infolektuell.gradle.jpackage.tasks.modularity.*;
 import de.infolektuell.gradle.jpackage.tasks.platform.*;
@@ -150,7 +153,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getVendor().convention(application.getMetadata().getVendor());
             });
 
-            var jpackageImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
+            var appImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app image");
                 task.getType().convention("app-image");
@@ -180,15 +183,17 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
                 task.getPlatformOptions().convention(platformOptions);
             });
 
+            var appImageName = application.getMetadata().getName().zip(osName, (name, os) -> isMac(os) ? name + ".app" : name);
+            var appImageProvider = appImageTask.flatMap(task -> task.getDest().dir(appImageName));
             project.getTasks().register("appInstaller", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app installer");
-                task.getType().convention(osName.map(os -> {
-                    if (isWindows(os)) return application.getWindows().getInstallerType();
-                    if (isMac(os)) return application.getMac().getInstallerType();
-                    return application.getLinux().getInstallerType();
-                }).map(Object::toString));
-                task.getApplicationImage().convention(jpackageImageTask.flatMap(JpackageTask::getDest));
+                task.getType().convention(osName.flatMap(os -> {
+                    if (isWindows(os)) return application.getWindows().getInstallerType().map(WindowsHandler.InstallerType::toString);
+                    if (isMac(os)) return application.getMac().getInstallerType().map(MacHandler.InstallerType::toString);
+                    return application.getLinux().getInstallerType().map(LinuxHandler.InstallerType::toString);
+                }));
+                task.getApplicationImage().convention(appImageProvider);
                 task.getAboutURL().convention(application.getMetadata().getAboutUrl());
                 task.getLicenseFile().convention(application.getMetadata().getLicenseFile());
                 task.getFileAssociations().convention(application.getFileAssociations());

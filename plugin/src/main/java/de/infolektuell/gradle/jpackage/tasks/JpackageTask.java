@@ -92,6 +92,7 @@ public abstract class JpackageTask extends JDKToolTask {
           --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
           Option is required when creating a runtime package.
         """)
+    @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getRuntimeImage();
@@ -102,6 +103,7 @@ public abstract class JpackageTask extends JDKToolTask {
           (absolute path or relative to the current directory)
           All files in the input directory will be packaged into the application image.
         """)
+    @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getInput();
