@@ -1,0 +1,249 @@
+build/jpackage
+
++---image
+|   \---Sample
+|       |   Sample.exe
+|       |   
+|       +---app
+|       |       .jpackage.xml
+|       |       listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+|       |       Sample.cfg
+|       |       
+|       \---runtime
+|           |   release
+|           |   
+|           +---bin
+|           |   |   api-ms-win-core-console-l1-1-0.dll
+|           |   |   api-ms-win-core-console-l1-2-0.dll
+|           |   |   api-ms-win-core-datetime-l1-1-0.dll
+|           |   |   api-ms-win-core-debug-l1-1-0.dll
+|           |   |   api-ms-win-core-errorhandling-l1-1-0.dll
+|           |   |   api-ms-win-core-fibers-l1-1-0.dll
+|           |   |   api-ms-win-core-fibers-l1-1-1.dll
+|           |   |   api-ms-win-core-file-l1-1-0.dll
+|           |   |   api-ms-win-core-file-l1-2-0.dll
+|           |   |   api-ms-win-core-file-l2-1-0.dll
+|           |   |   api-ms-win-core-handle-l1-1-0.dll
+|           |   |   api-ms-win-core-heap-l1-1-0.dll
+|           |   |   api-ms-win-core-interlocked-l1-1-0.dll
+|           |   |   api-ms-win-core-kernel32-legacy-l1-1-1.dll
+|           |   |   api-ms-win-core-libraryloader-l1-1-0.dll
+|           |   |   api-ms-win-core-localization-l1-2-0.dll
+|           |   |   api-ms-win-core-memory-l1-1-0.dll
+|           |   |   api-ms-win-core-namedpipe-l1-1-0.dll
+|           |   |   api-ms-win-core-processenvironment-l1-1-0.dll
+|           |   |   api-ms-win-core-processthreads-l1-1-0.dll
+|           |   |   api-ms-win-core-processthreads-l1-1-1.dll
+|           |   |   api-ms-win-core-profile-l1-1-0.dll
+|           |   |   api-ms-win-core-rtlsupport-l1-1-0.dll
+|           |   |   api-ms-win-core-string-l1-1-0.dll
+|           |   |   api-ms-win-core-synch-l1-1-0.dll
+|           |   |   api-ms-win-core-synch-l1-2-0.dll
+|           |   |   api-ms-win-core-sysinfo-l1-1-0.dll
+|           |   |   api-ms-win-core-sysinfo-l1-2-0.dll
+|           |   |   api-ms-win-core-timezone-l1-1-0.dll
+|           |   |   api-ms-win-core-util-l1-1-0.dll
+|           |   |   api-ms-win-crt-conio-l1-1-0.dll
+|           |   |   api-ms-win-crt-convert-l1-1-0.dll
+|           |   |   api-ms-win-crt-environment-l1-1-0.dll
+|           |   |   api-ms-win-crt-filesystem-l1-1-0.dll
+|           |   |   api-ms-win-crt-heap-l1-1-0.dll
+|           |   |   api-ms-win-crt-locale-l1-1-0.dll
+|           |   |   api-ms-win-crt-math-l1-1-0.dll
+|           |   |   api-ms-win-crt-multibyte-l1-1-0.dll
+|           |   |   api-ms-win-crt-private-l1-1-0.dll
+|           |   |   api-ms-win-crt-process-l1-1-0.dll
+|           |   |   api-ms-win-crt-runtime-l1-1-0.dll
+|           |   |   api-ms-win-crt-stdio-l1-1-0.dll
+|           |   |   api-ms-win-crt-string-l1-1-0.dll
+|           |   |   api-ms-win-crt-time-l1-1-0.dll
+|           |   |   api-ms-win-crt-utility-l1-1-0.dll
+|           |   |   java.dll
+|           |   |   jimage.dll
+|           |   |   jli.dll
+|           |   |   msvcp140.dll
+|           |   |   net.dll
+|           |   |   nio.dll
+|           |   |   syslookup.dll
+|           |   |   ucrtbase.dll
+|           |   |   vcruntime140.dll
+|           |   |   vcruntime140_1.dll
+|           |   |   verify.dll
+|           |   |   zip.dll
+|           |   |   
+|           |   \---server
+|           |           jvm.dll
+|           |           
+|           +---conf
+|           |   |   logging.properties
+|           |   |   net.properties
+|           |   |   
+|           |   \---security
+|           |       |   java.security
+|           |       |   
+|           |       \---policy
+|           |           |   README.txt
+|           |           |   
+|           |           +---limited
+|           |           |       default_local.policy
+|           |           |       default_US_export.policy
+|           |           |       exempt_local.policy
+|           |           |       
+|           |           \---unlimited
+|           |                   default_local.policy
+|           |                   default_US_export.policy
+|           |                   
+|           +---legal
+|           |   +---java.base
+|           |   |       ADDITIONAL_LICENSE_INFO
+|           |   |       aes.md
+|           |   |       ASSEMBLY_EXCEPTION
+|           |   |       c-libutl.md
+|           |   |       cldr.md
+|           |   |       icu.md
+|           |   |       LICENSE
+|           |   |       public_suffix.md
+|           |   |       siphash.md
+|           |   |       unicode.md
+|           |   |       wepoll.md
+|           |   |       zlib.md
+|           |   |       
+|           |   \---java.logging
+|           |           ADDITIONAL_LICENSE_INFO
+|           |           ASSEMBLY_EXCEPTION
+|           |           LICENSE
+|           |           
+|           \---lib
+|               |   classlist
+|               |   jrt-fs.jar
+|               |   jvm.cfg
+|               |   jvm.lib
+|               |   modules
+|               |   tzdb.dat
+|               |   tzmappings
+|               |   
+|               \---security
+|                       blocked.certs
+|                       cacerts
+|                       public_suffix_list.dat
+|                       
++---input
+|       listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar
+|       
+\---runtime
+    |   release
+    |   
+    +---bin
+    |   |   api-ms-win-core-console-l1-1-0.dll
+    |   |   api-ms-win-core-console-l1-2-0.dll
+    |   |   api-ms-win-core-datetime-l1-1-0.dll
+    |   |   api-ms-win-core-debug-l1-1-0.dll
+    |   |   api-ms-win-core-errorhandling-l1-1-0.dll
+    |   |   api-ms-win-core-fibers-l1-1-0.dll
+    |   |   api-ms-win-core-fibers-l1-1-1.dll
+    |   |   api-ms-win-core-file-l1-1-0.dll
+    |   |   api-ms-win-core-file-l1-2-0.dll
+    |   |   api-ms-win-core-file-l2-1-0.dll
+    |   |   api-ms-win-core-handle-l1-1-0.dll
+    |   |   api-ms-win-core-heap-l1-1-0.dll
+    |   |   api-ms-win-core-interlocked-l1-1-0.dll
+    |   |   api-ms-win-core-kernel32-legacy-l1-1-1.dll
+    |   |   api-ms-win-core-libraryloader-l1-1-0.dll
+    |   |   api-ms-win-core-localization-l1-2-0.dll
+    |   |   api-ms-win-core-memory-l1-1-0.dll
+    |   |   api-ms-win-core-namedpipe-l1-1-0.dll
+    |   |   api-ms-win-core-processenvironment-l1-1-0.dll
+    |   |   api-ms-win-core-processthreads-l1-1-0.dll
+    |   |   api-ms-win-core-processthreads-l1-1-1.dll
+    |   |   api-ms-win-core-profile-l1-1-0.dll
+    |   |   api-ms-win-core-rtlsupport-l1-1-0.dll
+    |   |   api-ms-win-core-string-l1-1-0.dll
+    |   |   api-ms-win-core-synch-l1-1-0.dll
+    |   |   api-ms-win-core-synch-l1-2-0.dll
+    |   |   api-ms-win-core-sysinfo-l1-1-0.dll
+    |   |   api-ms-win-core-sysinfo-l1-2-0.dll
+    |   |   api-ms-win-core-timezone-l1-1-0.dll
+    |   |   api-ms-win-core-util-l1-1-0.dll
+    |   |   api-ms-win-crt-conio-l1-1-0.dll
+    |   |   api-ms-win-crt-convert-l1-1-0.dll
+    |   |   api-ms-win-crt-environment-l1-1-0.dll
+    |   |   api-ms-win-crt-filesystem-l1-1-0.dll
+    |   |   api-ms-win-crt-heap-l1-1-0.dll
+    |   |   api-ms-win-crt-locale-l1-1-0.dll
+    |   |   api-ms-win-crt-math-l1-1-0.dll
+    |   |   api-ms-win-crt-multibyte-l1-1-0.dll
+    |   |   api-ms-win-crt-private-l1-1-0.dll
+    |   |   api-ms-win-crt-process-l1-1-0.dll
+    |   |   api-ms-win-crt-runtime-l1-1-0.dll
+    |   |   api-ms-win-crt-stdio-l1-1-0.dll
+    |   |   api-ms-win-crt-string-l1-1-0.dll
+    |   |   api-ms-win-crt-time-l1-1-0.dll
+    |   |   api-ms-win-crt-utility-l1-1-0.dll
+    |   |   java.dll
+    |   |   jimage.dll
+    |   |   jli.dll
+    |   |   msvcp140.dll
+    |   |   net.dll
+    |   |   nio.dll
+    |   |   syslookup.dll
+    |   |   ucrtbase.dll
+    |   |   vcruntime140.dll
+    |   |   vcruntime140_1.dll
+    |   |   verify.dll
+    |   |   zip.dll
+    |   |   
+    |   \---server
+    |           jvm.dll
+    |           
+    +---conf
+    |   |   logging.properties
+    |   |   net.properties
+    |   |   
+    |   \---security
+    |       |   java.security
+    |       |   
+    |       \---policy
+    |           |   README.txt
+    |           |   
+    |           +---limited
+    |           |       default_local.policy
+    |           |       default_US_export.policy
+    |           |       exempt_local.policy
+    |           |       
+    |           \---unlimited
+    |                   default_local.policy
+    |                   default_US_export.policy
+    |                   
+    +---legal
+    |   +---java.base
+    |   |       ADDITIONAL_LICENSE_INFO
+    |   |       aes.md
+    |   |       ASSEMBLY_EXCEPTION
+    |   |       c-libutl.md
+    |   |       cldr.md
+    |   |       icu.md
+    |   |       LICENSE
+    |   |       public_suffix.md
+    |   |       siphash.md
+    |   |       unicode.md
+    |   |       wepoll.md
+    |   |       zlib.md
+    |   |       
+    |   \---java.logging
+    |           ADDITIONAL_LICENSE_INFO
+    |           ASSEMBLY_EXCEPTION
+    |           LICENSE
+    |           
+    \---lib
+        |   classlist
+        |   jrt-fs.jar
+        |   jvm.cfg
+        |   jvm.lib
+        |   modules
+        |   tzdb.dat
+        |   tzmappings
+        |   
+        \---security
+                blocked.certs
+                cacerts
+                public_suffix_list.dat
