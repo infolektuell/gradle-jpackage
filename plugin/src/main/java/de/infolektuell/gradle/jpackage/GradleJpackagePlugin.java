@@ -153,6 +153,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             var jpackageImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app image");
+                task.getType().convention("app-image");
                 task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
                 task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                 task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
@@ -182,6 +183,11 @@ public abstract class GradleJpackagePlugin implements Plugin<@NotNull Project> {
             project.getTasks().register("appInstaller", JpackageTask.class, task -> {
                 task.setGroup("application");
                 task.setDescription("Generates a native app installer");
+                task.getType().convention(osName.map(os -> {
+                    if (isWindows(os)) return application.getWindows().getInstallerType();
+                    if (isMac(os)) return application.getMac().getInstallerType();
+                    return application.getLinux().getInstallerType();
+                }).map(Object::toString));
                 task.getApplicationImage().convention(jpackageImageTask.flatMap(JpackageTask::getDest));
                 task.getAboutURL().convention(application.getMetadata().getAboutUrl());
                 task.getLicenseFile().convention(application.getMetadata().getLicenseFile());

@@ -34,6 +34,10 @@ public abstract class JpackageTask extends JDKToolTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract ListProperty<@NonNull RegularFile> getArgFiles();
 
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getType();
+
     @Option(option = "app-version", description = "Version of the application and/or package")
     @Optional
     @Input
@@ -187,6 +191,7 @@ public abstract class JpackageTask extends JDKToolTask {
 
         exec("jpackage", spec -> {
             getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
+            if (getType().isPresent()) spec.args("--type", getType().get());
             if (getAppVersion().isPresent() && isVersion(getAppVersion().get())) spec.args("--app-version", getAppVersion().get());
             if (getCopyright().isPresent()) spec.args("--copyright", getCopyright().get());
             if (getAppDescription().isPresent()) spec.args("--description", getAppDescription().get());
@@ -220,8 +225,9 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getLauncherAsService().getOrElse(false)) spec.args("--launcher-as-service");
 
             switch (getPlatformOptions().getOrNull()) {
+                case JpackageLinuxOptions linux -> {
+                }
                 case JpackageMacOSOptions mac -> {
-                    spec.args("--type", mac.getType().map(JpackageMacOSOptions.InstallerType::toString).getOrElse("app-image"));
                     if (mac.getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());
                     if (mac.getMacPackageName().isPresent()) spec.args("--mac-package-name", mac.getMacPackageName().get());
                     if (mac.getMacPackageSigningPrefix().isPresent()) spec.args("--mac-package-signing-prefix", mac.getMacPackageSigningPrefix().get());
@@ -235,11 +241,7 @@ public abstract class JpackageTask extends JDKToolTask {
                     if (mac.getMacAppCategory().isPresent()) spec.args("--mac-app-category", mac.getMacAppCategory().get());
                     if (mac.getMacDMGContent().isPresent()) spec.args("--dmg-content", mac.getMacDMGContent().get());
                 }
-                case JpackageLinuxOptions linux -> {
-                    spec.args("--type", linux.getType().map(JpackageLinuxOptions.InstallerType::toString).getOrElse("app-image"));
-                }
                 case JpackageWindowsOptions win -> {
-                    spec.args("--type", win.getType().map(JpackageWindowsOptions.InstallerType::toString).getOrElse("app-image"));
                     if (win.getWinConsole().getOrElse(false)) spec.args("--win-console");
                     if (win.getWinDirChooser().getOrElse(false)) spec.args("--win-dir-chooser");
                     if (win.getWinHelpURL().isPresent()) spec.args("--win-help-url", win.getWinHelpURL().get());

@@ -5,21 +5,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Optional;
 import org.jspecify.annotations.NonNull;
 
-import java.io.Serial;
-import java.io.Serializable;
-
 public non-sealed interface JpackageWindowsOptions extends JpackagePlatformOptions {
-    enum InstallerType implements Serializable {
-        EXE, MSI;
-        public String toString() { return this.name().toLowerCase(); }
-        @Serial
-        private static final long serialVersionUID = 1L;
-    }
-
-    @Optional
-    @Input
-    Property<@NonNull InstallerType> getType();
-
     @Optional
     @Input
     Property<@NonNull Boolean> getWinConsole();

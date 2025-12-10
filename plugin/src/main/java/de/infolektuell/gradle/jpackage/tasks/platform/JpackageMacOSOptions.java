@@ -7,21 +7,7 @@ import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.Option;
 import org.jspecify.annotations.NonNull;
 
-import java.io.Serial;
-import java.io.Serializable;
-
 public non-sealed interface JpackageMacOSOptions extends JpackagePlatformOptions {
-    enum InstallerType implements Serializable {
-        DMG,PKG;
-        public String toString() { return this.name().toLowerCase(); }
-        @Serial
-        private static final long serialVersionUID = 1L;
-    }
-
-    @Optional
-    @Input
-    Property<@NonNull InstallerType> getType();
-
     @Option(option = "mac-package-identifier", description = """
           An identifier that uniquely identifies the application for macOS
           Defaults to the main class name.
