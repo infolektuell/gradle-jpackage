@@ -58,13 +58,17 @@ This plugin uses the Jdeps result in its Jlink and run tasks.
 
 ### Kotlin
 
+<details>
+<summary>Main class not found</summary>
+
+Gradle init generates a Kotlin app where the `main` method is a top-level function in an `App.kt` file.
+this works out of the box, but if the `main` method is part of a companion object, e.g., `App.main` it won't be found by Jdeps or the run task.
+
 Less magic means that some parts have to be a bit more explicit.
-A typical Java-based app has a class with a static `main` method that serves as an entry point to make the built Jar file runnable.
-In Kotlin, `main` can be a top-level function in a file, this works seamlessly with this plugin.
-If `main` is part of the companion object, it must be annotated with `@JvmStatic` to become a “real” static method of its class.
-An `org.example.App` class would look like this:
+If a method like `main` is part of the companion object, it needs the `@JvmStatic` annotation to become a “real” static class member.
 
 ```kotlin
+// org.example.App.kt
 class App {
     val greeting: String
         get() {
@@ -79,7 +83,38 @@ fun main(vararg args: String) {
 }
 ```
 
-## Fat Jars
+</details>
+
+<details>
+<summary>Java module with Kotlin sources</summary>
+
+Modularizing a Kotlin JVM project is **still challenging**.
+Such projects contain Kotlin sources and a  `module-info.java` module descriptor that exports packages from the Kotlin sources.
+The build fails, because the Java compiler is unable to find the packages to export.
+This is a Kotlin problem and independent of this plugin, but modularization is its key point, so the [solution][kotlin-jpms] is documented here.
+
+```kts
+// build.gradle.kts
+tasks.compileJava {
+    options.compilerArgumentProviders.add(object : CommandLineArgumentProvider {
+        @CompileClasspath
+        val kotlinClasses = kotlin.sourceSets.main.flatMap { it.kotlin.classesDirectory }
+        @Input
+        val moduleName = application.mainModule
+
+        override fun asArguments() = listOf(
+            "--patch-module",
+            "${moduleName.get()}=${kotlinClasses.get().asFile.absolutePath}"
+        )
+    })
+}
+```
+
+[kotlin-jpms]: https://discuss.gradle.org/t/mixing-kotlin-and-java-in-a-jpms-module-gradle-project/48011
+
+</details>
+
+### Fat Jars
 
 **you probably don't want fat jars for an application.**
 
