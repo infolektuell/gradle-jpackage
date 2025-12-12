@@ -99,7 +99,7 @@ public abstract class JdepsTask extends JDKToolTask {
         if (result.getExitValue() != 0) {
             getLogger().error("Jdeps failed: {}", output);
         } else {
-            getLogger().lifecycle("Jdeps found these module dependencies: {}", output);
+            getLogger().info("Jdeps found these module dependencies: {}", output);
         }
         result.assertNormalExitValue();
         final Path dest = getDestinationFile().get().getAsFile().toPath();
