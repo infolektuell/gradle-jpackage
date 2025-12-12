@@ -98,6 +98,7 @@ public abstract class JlinkTask extends JDKToolTask {
             if (getStripDebug().getOrElse(false)) spec.args("--strip-debug");
             if (getStripNativeCommands().getOrElse(false)) spec.args("--strip-native-commands");
             spec.args("--output", getOutput().get());
+            if (getLogger().isInfoEnabled()) spec.args("--verbose");
         });
     }
 }

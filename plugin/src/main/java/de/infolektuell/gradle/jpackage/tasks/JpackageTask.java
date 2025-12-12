@@ -292,6 +292,7 @@ public abstract class JpackageTask extends JDKToolTask {
                 case null -> {
                 }
             }
+            if (getLogger().isInfoEnabled()) spec.args("--verbose");
         });
     }
 }
