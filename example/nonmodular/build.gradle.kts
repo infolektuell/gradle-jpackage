@@ -30,6 +30,7 @@ jpackage {
     launcher {
         mainClass = "org.example.App"
     }
+    isCommandLineApplication = true
 }
 
 tasks.named<Test>("test") {

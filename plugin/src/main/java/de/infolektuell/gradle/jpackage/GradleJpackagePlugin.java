@@ -158,7 +158,9 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                 task.getJavaOptions().convention(jpackageExtension.getLauncher().getJavaOptions());
                 Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
                     if (isWindows(os)) {
-                        return project.getObjects().newInstance(JpackageWindowsOptions.class);
+                        final JpackageWindowsOptions win = project.getObjects().newInstance(JpackageWindowsOptions.class);
+                        win.getWinConsole().convention(jpackageExtension.getIsCommandLineApplication());
+                        return win;
                     } else if (isMac(os)) {
                         final JpackageMacOSOptions mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
                         mac.getMacAppCategory().convention(jpackageExtension.getMac().getAppCategory());

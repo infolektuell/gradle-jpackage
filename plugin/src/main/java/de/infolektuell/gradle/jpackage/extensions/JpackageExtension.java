@@ -4,7 +4,6 @@ import org.gradle.api.Action;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
@@ -73,6 +72,7 @@ public abstract class JpackageExtension {
      * Additional directories to be added to the app payload
      */
     public abstract ConfigurableFileCollection getContent();
+    public abstract Property<@NonNull Boolean> getIsCommandLineApplication();
 
     /**
      * Files to describe file associations
