@@ -16,7 +16,6 @@ dependencies {
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
-
 }
 
 // Apply a specific Java toolchain to ease working on different environments.
@@ -26,10 +25,11 @@ java {
     }
 }
 
-application {
+jpackage {
     metadata.name = "Sample"
-    // Define the main class for the application.
-    launcher.mainClass = "org.example.App"
+    launcher {
+        mainClass = "org.example.App"
+    }
 }
 
 tasks.named<Test>("test") {

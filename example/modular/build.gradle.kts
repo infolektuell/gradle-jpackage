@@ -25,7 +25,7 @@ java {
     }
 }
 
-application {
+jpackage {
     metadata.name = "Sample"
     launcher {
         mainModule = "example.app"

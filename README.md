@@ -3,9 +3,7 @@
 [![Gradle Plugin Portal Version](https://img.shields.io/gradle-plugin-portal/v/de.infolektuell.jpackage)](https://plugins.gradle.org/plugin/de.infolektuell.jpackage)
 
 This Gradle plugin creates native installers for Java-based applications.
-It is intended to be used as a replacement for the built-in application plugin.
-It brings its own run task and application extension but omits the distribution plugin
-The extension's API resembles the application plugin's one, this should simplify migration.
+It integrates with the Java plugin and with the application plugin if it is applied.
 
 ## Features
 
@@ -19,7 +17,7 @@ The extension's API resembles the application plugin's one, this should simplify
 
 ```kts
 plugins {
-    java //Please omit the application plugin
+    application
     id("de.infolektuell.jpackage") version "x.y.z"
 }
 
@@ -35,26 +33,20 @@ java {
 }
 
 application {
-  // also offers `applicationName`, `mainClass` and friends for migration
-  metadata.name = "SampleApp"
-  launcher.mainClass = "org.example.App"
+  applicationName = "SampleApp"
+  mainClass = "org.example.App"
 }
 ```
 
-The plugin relies on the Java plugin to infer sensible defaults, so the build script can be very concise,
+The plugin retrieves its conventions from the Java and Application plugin, so the build script can be very concise,
 
-## Fundamentally Different
-
-Instead of overriding or augmenting the settings of the java plugins with domain-specific static conventions, it  relies on JDK-included tools like Jlink, Jpackage and Jdeps to figure out the right settings for tasks that compile and run Java applications.
-This is the more general and stable approach compared to patching other plugins' settings.
+## Use-Cases
 
 ### JavaFX
 
-The JavaFX plugin Adds its modules to the run tasks to make it work “auto-magically.”
-Actually, this is not necessary if Jdeps analyzes the app dependencies beforehand.
-The Jdeps tool included with the JDK is able to figure out the right modules.
-Thus, JavaFX is no special edge case.
-This plugin uses the Jdeps result in its Jlink and run tasks.
+JavaFX is no special edge case.
+The powerful Jdeps tool included with the JDK is able to figure out the right modules for Jlink.
+In general, users shouldn't need to manually supply the modules to be included in the runtime image.
 
 ### Kotlin
 
@@ -86,29 +78,26 @@ fun main(vararg args: String) {
 </details>
 
 <details>
-<summary>Java module with Kotlin sources</summary>
+<summary>Patching Java module with Kotlin sources</summary>
 
-Modularizing a Kotlin JVM project is **still challenging**.
-Such projects contain Kotlin sources and a  `module-info.java` module descriptor that exports packages from the Kotlin sources.
+Some projects contain Kotlin sources and a  `module-info.java` module descriptor that exports packages from the Kotlin sources.
 The build fails, because the Java compiler is unable to find the packages to export.
-This is a Kotlin problem and independent of this plugin, but modularization is its key point, so the [solution][kotlin-jpms] is documented here.
+The compiler needs the information where the packages and classes for that module can be found (module patching).
+
+The Java plugin doesn't offer a convenient way to declare module patches.
+But this plugin adds a source set extension where module patches can be defined and will be passed to the compiler.
 
 ```kts
 // build.gradle.kts
-tasks.compileJava {
-    options.compilerArgumentProviders.add(object : CommandLineArgumentProvider {
-        @CompileClasspath
-        val kotlinClasses = kotlin.sourceSets.main.flatMap { it.kotlin.classesDirectory }
-        @Input
-        val moduleName = application.mainModule
-
-        override fun asArguments() = listOf(
-            "--patch-module",
-            "${moduleName.get()}=${kotlinClasses.get().asFile.absolutePath}"
-        )
-    })
+sourceSets.named("main") {
+  patchModule.define {
+    module = application.mainModule
+    classes.from(kotlin.classesDirectory)
+  }
 }
 ```
+
+The inspiration came from [this forum thread][kotlin-jpms].
 
 [kotlin-jpms]: https://discuss.gradle.org/t/mixing-kotlin-and-java-in-a-jpms-module-gradle-project/48011
 
@@ -134,9 +123,33 @@ This is a main reason why Gradle projects should consist of subprojects from the
 [java library]: https://docs.gradle.org/current/userguide/java_library_plugin.html
 [shadow]: https://gradleup.com/shadow/
 
+### No Application Plugin
+
+The plugin also works without the application plugin.
+It adds the main class to the manifest file and brings it own configurable DSL extension.
+But there will be no run task without the Application plugin.
+
+```kts
+plugins {
+    java
+    id("de.infolektuell.jpackage")
+}
+
+jpackage {
+  metadata.name = "Sample"
+  launcher {
+    mainModule = "example.app"
+    mainClass = "org.example.App"
+  }
+}
+```
 ### Issues
 
 If you run into some edge cases or a situation where this plugin conflicts with another one, you're invited to [create an issue](https://github.com/infolektuell/gradle-jpackage/issues/new) and describe your problem.
+
+## Example Project
+
+See the [example project](https://github.com/infolektuell/gradle-jpackage/tree/main/example) for minimal sample apps using this plugin.
 
 ## Change history
 
