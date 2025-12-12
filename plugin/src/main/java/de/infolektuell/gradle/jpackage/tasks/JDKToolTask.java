@@ -33,7 +33,10 @@ public abstract class JDKToolTask extends DefaultTask {
     protected Provider<@NonNull RegularFile> getExecutable(String toolName) {
         return getMetadata().map(data -> {
             var root = data.getInstallationPath();
-            var executable = root.getAsFileTree().matching(it -> it.include("bin/" + toolName + "*")).getSingleFile();
+            var executable = root.getAsFileTree().matching(it -> {
+                it.include("bin/" + toolName);
+                it.include("bin/" + toolName + ".exe");
+            }).getSingleFile();
             return root.file(executable.getAbsolutePath());
         });
     }
