@@ -8,8 +8,11 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.*;
 import org.gradle.jvm.toolchain.*;
+import org.gradle.process.ExecResult;
 import org.jspecify.annotations.NonNull;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -81,27 +84,34 @@ public abstract class JdepsTask extends JDKToolTask {
 
     @TaskAction
     protected void jdeps() {
-        Path dest = getDestinationFile().get().getAsFile().toPath();
-        try (var s = Files.newOutputStream(dest)) {
-            exec("jdeps", spec -> {
-                if (!getClassPath().isEmpty()) spec.args("--class-path", getClassPath().getAsPath());
-                if (!getModulePath().isEmpty()) spec.args("--module-path", getModulePath().getAsPath());
-                if (!getUpgradeModulePath().isEmpty()) spec.args("--upgrade-module-path", getUpgradeModulePath().getAsPath());
-                if (getRecursive().getOrElse(false)) spec.args("--recursive");
-                if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");
-                if (getIgnoreMissingDeps().getOrElse(false)) spec.args("--ignore-missing-deps");
-                if (getMultiRelease().isPresent()) spec.args("--multi-release", getMultiRelease().get().asInt());
-                switch (getModularity().get()) {
-                    case Modular modular -> spec.args("--module", modular.getMainModule().get());
-                    case NonModular nonModular -> spec.args(nonModular.getMainJar().get());
-                }
-                spec.setStandardOutput(s);
-            });
-        } catch (Exception e) {
+        final ByteArrayOutputStream s = new ByteArrayOutputStream();
+        final ExecResult result = exec("jdeps", spec -> {
+            spec.setIgnoreExitValue(true);
+            spec.setStandardOutput(s);
+            if (!getClassPath().isEmpty()) spec.args("--class-path", getClassPath().getAsPath());
+            if (!getModulePath().isEmpty()) spec.args("--module-path", getModulePath().getAsPath());
+            if (!getUpgradeModulePath().isEmpty()) spec.args("--upgrade-module-path", getUpgradeModulePath().getAsPath());
+            if (getRecursive().getOrElse(false)) spec.args("--recursive");
+            if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");
+            if (getIgnoreMissingDeps().getOrElse(false)) spec.args("--ignore-missing-deps");
+            if (getMultiRelease().isPresent()) spec.args("--multi-release", getMultiRelease().get().asInt());
+            switch (getModularity().get()) {
+                case Modular modular -> spec.args("--module", modular.getMainModule().get());
+                case NonModular nonModular -> spec.args(nonModular.getMainJar().get());
+            }
+        });
+        final String output = s.toString();
+        if (result.getExitValue() != 0) {
+            getLogger().error("Jdeps failed: {}", output);
+        } else {
+            getLogger().lifecycle("Jdeps found these module dependencies: {}", output);
+        }
+        result.assertNormalExitValue();
+        final Path dest = getDestinationFile().get().getAsFile().toPath();
+        try {
+            Files.writeString(dest, output);
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        try {
-            Files.copy(dest, System.out);
-        } catch(Exception ignored) {}
     }
 }
