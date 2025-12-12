@@ -9,12 +9,18 @@ import java.io.Serializable;
 public abstract class LinuxHandler {
     public enum InstallerType implements Serializable {
         DEB, RPM;
-        public String toString() { return this.name().toLowerCase(); }
+
+        public String toString() {
+            return this.name().toLowerCase();
+        }
+
         @Serial
         private static final long serialVersionUID = 1L;
     }
 
     public abstract Property<@NonNull InstallerType> getInstallerType();
+
     public abstract Property<@NonNull String> getPackageName();
+
     public abstract Property<@NonNull Boolean> getShortcut();
 }

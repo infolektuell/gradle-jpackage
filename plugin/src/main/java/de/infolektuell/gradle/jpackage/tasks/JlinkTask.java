@@ -1,6 +1,8 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
@@ -57,7 +59,7 @@ public abstract class JlinkTask extends JDKToolTask {
     public abstract ConfigurableFileCollection getModulePath();
 
     @Optional
-        @Input
+    @Input
     public abstract Property<@NonNull Boolean> getNoHeaderFiles();
 
     @Optional

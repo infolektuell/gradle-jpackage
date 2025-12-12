@@ -1,13 +1,14 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.*;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
+import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
 import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.options.*;
-import org.gradle.jvm.toolchain.*;
+import org.gradle.api.tasks.options.Option;
+import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.process.ExecResult;
 import org.jspecify.annotations.NonNull;
 
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+@CacheableTask
 public abstract class JdepsTask extends JDKToolTask {
     /**
      * Specify where to find class files
@@ -44,14 +46,6 @@ public abstract class JdepsTask extends JDKToolTask {
      */
     @Nested
     public abstract Property<@NonNull Modularity> getModularity();
-
-    /**
-     * Specify an alternate system module path
-     */
-    @Option(option = "--system", description = "Specify an alternate system module path")
-    @Optional
-    @InputDirectory
-    public abstract DirectoryProperty getSystem();
 
     @Option(option = "--recursive", description = "Recursively traverse all run-time dependencies.")
     @Optional
@@ -90,7 +84,8 @@ public abstract class JdepsTask extends JDKToolTask {
             spec.setStandardOutput(s);
             if (!getClassPath().isEmpty()) spec.args("--class-path", getClassPath().getAsPath());
             if (!getModulePath().isEmpty()) spec.args("--module-path", getModulePath().getAsPath());
-            if (!getUpgradeModulePath().isEmpty()) spec.args("--upgrade-module-path", getUpgradeModulePath().getAsPath());
+            if (!getUpgradeModulePath().isEmpty())
+                spec.args("--upgrade-module-path", getUpgradeModulePath().getAsPath());
             if (getRecursive().getOrElse(false)) spec.args("--recursive");
             if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");
             if (getIgnoreMissingDeps().getOrElse(false)) spec.args("--ignore-missing-deps");

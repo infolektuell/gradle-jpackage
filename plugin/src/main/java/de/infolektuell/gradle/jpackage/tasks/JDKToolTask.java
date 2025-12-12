@@ -26,6 +26,7 @@ public abstract class JDKToolTask extends DefaultTask {
 
     /**
      * Queries a certain JDK tool
+     *
      * @param toolName A valid name of a JDK tool
      * @return The tool's executable file
      */

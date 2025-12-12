@@ -28,12 +28,15 @@ public abstract class LauncherHandler {
      * The application's main class
      */
     public abstract Property<@NonNull String> getMainClass();
+
     public abstract Property<@NonNull Boolean> getLauncherAsService();
 
     public abstract NamedDomainObjectContainer<@NonNull Launcher> getLaunchers();
+
     public void addLauncher(String name, RegularFile file) {
         getLaunchers().register(name, l -> l.getFile().convention(file));
     }
+
     public void addLauncher(String name, Provider<@NonNull RegularFile> file) {
         getLaunchers().register(name, l -> l.getFile().convention(file));
     }

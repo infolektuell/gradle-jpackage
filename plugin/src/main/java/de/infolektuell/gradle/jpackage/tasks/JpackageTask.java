@@ -1,7 +1,12 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.*;
-import de.infolektuell.gradle.jpackage.tasks.platform.*;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
+import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
+import de.infolektuell.gradle.jpackage.tasks.platform.JpackageLinuxOptions;
+import de.infolektuell.gradle.jpackage.tasks.platform.JpackageMacOSOptions;
+import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
+import de.infolektuell.gradle.jpackage.tasks.platform.JpackageWindowsOptions;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
 import org.gradle.api.provider.ListProperty;
@@ -14,6 +19,7 @@ import org.jspecify.annotations.NonNull;
 import javax.inject.Inject;
 import java.util.regex.Pattern;
 
+@CacheableTask
 public abstract class JpackageTask extends JDKToolTask {
     private static final Pattern versionPattern = Pattern.compile("^\\d+([.]\\d+){0,2}$");
 
@@ -194,7 +200,8 @@ public abstract class JpackageTask extends JDKToolTask {
         exec("jpackage", spec -> {
             getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
             if (getType().isPresent()) spec.args("--type", getType().get());
-            if (getAppVersion().isPresent() && isVersion(getAppVersion().get())) spec.args("--app-version", getAppVersion().get());
+            if (getAppVersion().isPresent() && isVersion(getAppVersion().get()))
+                spec.args("--app-version", getAppVersion().get());
             if (getCopyright().isPresent()) spec.args("--copyright", getCopyright().get());
             if (getAppDescription().isPresent()) spec.args("--description", getAppDescription().get());
             if (getIcon().isPresent()) spec.args("--icon", getIcon().get());
@@ -210,12 +217,14 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getArguments().isPresent()) getArguments().get().forEach(a -> spec.args("--arguments", a));
             if (getJavaOptions().isPresent()) getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
             switch (getModularity().getOrNull()) {
-                case Modular modular -> spec.args("--module", String.join("/", modular.getMainModule().get(), modular.getMainClass().get()));
+                case Modular modular ->
+                    spec.args("--module", String.join("/", modular.getMainModule().get(), modular.getMainClass().get()));
                 case NonModular nonModular -> {
                     spec.args("--main-class", nonModular.getMainClass().get());
                     spec.args("--main-jar", nonModular.getMainJar().get().getAsFile().getName());
                 }
-                case null -> {}
+                case null -> {
+                }
             }
 
             if (getApplicationImage().isPresent()) spec.args("--app-image", getApplicationImage().get());
@@ -228,27 +237,43 @@ public abstract class JpackageTask extends JDKToolTask {
 
             switch (getPlatformOptions().getOrNull()) {
                 case JpackageLinuxOptions linux -> {
-                    if (linux.getLinuxPackageName().isPresent()) spec.args("--linux-package-name", linux.getLinuxPackageName().get());
-                    if (linux.getLinuxDebMaintainer().isPresent()) spec.args("--linux-deb-maintainer", linux.getLinuxDebMaintainer().get());
-                    if (linux.getLinuxMenuGroup().isPresent()) spec.args("--linux-menu-group", linux.getLinuxMenuGroup().get());
-                    if (linux.getLinuxPackageDeps().isPresent()) spec.args("--linux-package-deps", linux.getLinuxPackageDeps().get());
-                    if (linux.getLinuxRPMLicenseType().isPresent()) spec.args("--linux-rpm-license-type", linux.getLinuxRPMLicenseType().get());
-                    if (linux.getLinuxAppRelease().isPresent()) spec.args("--linux-app-release", linux.getLinuxAppRelease().get());
-                    if (linux.getLinuxAppCategory().isPresent()) spec.args("--linux-app-category", linux.getLinuxAppCategory().get());
+                    if (linux.getLinuxPackageName().isPresent())
+                        spec.args("--linux-package-name", linux.getLinuxPackageName().get());
+                    if (linux.getLinuxDebMaintainer().isPresent())
+                        spec.args("--linux-deb-maintainer", linux.getLinuxDebMaintainer().get());
+                    if (linux.getLinuxMenuGroup().isPresent())
+                        spec.args("--linux-menu-group", linux.getLinuxMenuGroup().get());
+                    if (linux.getLinuxPackageDeps().isPresent())
+                        spec.args("--linux-package-deps", linux.getLinuxPackageDeps().get());
+                    if (linux.getLinuxRPMLicenseType().isPresent())
+                        spec.args("--linux-rpm-license-type", linux.getLinuxRPMLicenseType().get());
+                    if (linux.getLinuxAppRelease().isPresent())
+                        spec.args("--linux-app-release", linux.getLinuxAppRelease().get());
+                    if (linux.getLinuxAppCategory().isPresent())
+                        spec.args("--linux-app-category", linux.getLinuxAppCategory().get());
                     if (linux.getLinuxShortcut().getOrElse(false)) spec.args("--linux-shortcut");
                 }
                 case JpackageMacOSOptions mac -> {
-                    if (mac.getMacPackageIdentifier().isPresent()) spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());
-                    if (mac.getMacPackageName().isPresent()) spec.args("--mac-package-name", mac.getMacPackageName().get());
-                    if (mac.getMacPackageSigningPrefix().isPresent()) spec.args("--mac-package-signing-prefix", mac.getMacPackageSigningPrefix().get());
+                    if (mac.getMacPackageIdentifier().isPresent())
+                        spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());
+                    if (mac.getMacPackageName().isPresent())
+                        spec.args("--mac-package-name", mac.getMacPackageName().get());
+                    if (mac.getMacPackageSigningPrefix().isPresent())
+                        spec.args("--mac-package-signing-prefix", mac.getMacPackageSigningPrefix().get());
                     if (mac.getMacSign().getOrElse(false)) spec.args("--mac-sign");
-                    if (mac.getMacSigningKeychain().isPresent()) spec.args("--mac-signing-keychain", mac.getMacSigningKeychain().get());
-                    if (mac.getMacSigningKeyUserName().isPresent()) spec.args("--mac-signing-key-user-name", mac.getMacSigningKeyUserName().get());
-                    if (mac.getMacAppImageSignIdentity().isPresent()) spec.args("--mac-app-image-sign-identity", mac.getMacAppImageSignIdentity().get());
-                    if (mac.getMacInstallerSignIdentity().isPresent()) spec.args("--mac-installer-sign-identity", mac.getMacInstallerSignIdentity().get());
+                    if (mac.getMacSigningKeychain().isPresent())
+                        spec.args("--mac-signing-keychain", mac.getMacSigningKeychain().get());
+                    if (mac.getMacSigningKeyUserName().isPresent())
+                        spec.args("--mac-signing-key-user-name", mac.getMacSigningKeyUserName().get());
+                    if (mac.getMacAppImageSignIdentity().isPresent())
+                        spec.args("--mac-app-image-sign-identity", mac.getMacAppImageSignIdentity().get());
+                    if (mac.getMacInstallerSignIdentity().isPresent())
+                        spec.args("--mac-installer-sign-identity", mac.getMacInstallerSignIdentity().get());
                     if (mac.getMacAppStore().isPresent()) spec.args("--mac-app-store");
-                    if (mac.getMacEntitlements().isPresent()) spec.args("--mac-entitlements", mac.getMacEntitlements().get());
-                    if (mac.getMacAppCategory().isPresent()) spec.args("--mac-app-category", mac.getMacAppCategory().get());
+                    if (mac.getMacEntitlements().isPresent())
+                        spec.args("--mac-entitlements", mac.getMacEntitlements().get());
+                    if (mac.getMacAppCategory().isPresent())
+                        spec.args("--mac-app-category", mac.getMacAppCategory().get());
                     if (mac.getMacDMGContent().isPresent()) spec.args("--dmg-content", mac.getMacDMGContent().get());
                 }
                 case JpackageWindowsOptions win -> {
@@ -261,9 +286,11 @@ public abstract class JpackageTask extends JDKToolTask {
                     if (win.getWinShortcut().getOrElse(false)) spec.args("--win-shortcut");
                     if (win.getWinShortcutPrompt().getOrElse(false)) spec.args("--win-shortcut-prompt");
                     if (win.getWinUpdateURL().isPresent()) spec.args("--win-update-url", win.getWinUpdateURL().get());
-                    if (win.getWinUpgradeUUID().isPresent()) spec.args("--win-upgrade-uuid", win.getWinUpgradeUUID().get());
+                    if (win.getWinUpgradeUUID().isPresent())
+                        spec.args("--win-upgrade-uuid", win.getWinUpgradeUUID().get());
                 }
-                case null -> {}
+                case null -> {
+                }
             }
         });
     }

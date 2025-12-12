@@ -80,6 +80,7 @@ public non-sealed interface JpackageMacOSOptions extends JpackagePlatformOptions
     @Option(option = "mac-entitlements", description = "Path to file containing entitlements to use when signing executables and libraries in the bundle.")
     @Optional
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     RegularFileProperty getMacEntitlements();
 
     @Option(option = "mac-app-category", description = """

@@ -19,6 +19,7 @@ public abstract class SourceSetExtension implements CommandLineArgumentProvider 
     public interface PatchModuleDefinition {
         @Input
         Property<@NonNull String> getModule();
+
         @CompileClasspath
         ConfigurableFileCollection getClasses();
     }

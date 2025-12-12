@@ -12,6 +12,6 @@ class GradleJpackagePluginTest {
         project.getPlugins().apply(GradleJpackagePlugin.PLUGIN_NAME);
 
         // Verify the result
-        assertNotNull(project.getExtensions().findByName("application"));
+        assertNotNull(project.getExtensions().findByName("jpackage"));
     }
 }

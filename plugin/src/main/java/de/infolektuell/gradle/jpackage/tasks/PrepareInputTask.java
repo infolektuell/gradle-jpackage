@@ -1,8 +1,12 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.*;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
+import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
+import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 import org.gradle.work.DisableCachingByDefault;
