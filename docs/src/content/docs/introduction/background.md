@@ -11,7 +11,7 @@ So users don't need to install any JRE before using your apps.
 
 Jlink is the tool that generates a custom downsized JRE and comes with JDK 11 and above.
 This is possible since JDK 9 introduced the concept of modules (JPMS) and modularized the JDK itself.
-The custom JRE  includes only the modules used in the application code.
+The custom JRE includes only the modules used in the application code.
 
 ### How Jpackage works
 

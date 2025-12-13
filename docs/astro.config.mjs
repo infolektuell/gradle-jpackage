@@ -12,7 +12,8 @@ export default defineConfig({
         starlight({
             plugins: [starlightAutoImport()],
             title: 'Gradle Jpackage Plugin',
-            description: 'Uses Jpackage to create native installers for Java apps built with gradle and its Application plugin',
+            description:
+                'Uses Jpackage to create native installers for Java apps built with gradle and its Application plugin',
             logo: {
                 src: './src/assets/logo.svg',
             },
