@@ -1,0 +1,5 @@
+- Tasks for Jdeps, Jlink, and Jpackage.
+- connects the Java and Application plugins with these tools and sets sensible conventions.
+- Infers the module dependencies for non-modular apps using Jdeps.
+- Configurable via DSL extension `jpackage`.
+- Offers a source set extension for easier module patching, e.g., for Kotlin interop.

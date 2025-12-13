@@ -8,13 +8,13 @@ val releaseNotes = releaseNotes()
 version = releaseVersion.get()
 
 gradlePlugin {
-    website = "https://infolektuell.github.io/gradle-java-packaging/"
-    vcsUrl = "https://github.com/infolektuell/gradle-java-packaging.git"
+    website = "https://infolektuell.github.io/gradle-jpackage/"
+    vcsUrl = "https://github.com/infolektuell/gradle-jpackage.git"
     plugins.register("jpackagePlugin") {
         id = "de.infolektuell.jpackage"
         displayName = "Gradle Jpackage Plugin"
         description = releaseNotes.get()
-        tags = listOf("jpackage", "jlink", "application", "installer", "native")
+        tags = listOf("jpackage", "jlink", "application", "installer", "native", "jdeps")
         implementationClass = "de.infolektuell.gradle.jpackage.GradleJpackagePlugin"
     }
 }

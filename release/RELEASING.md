@@ -18,13 +18,13 @@ Put a new heading below the Unreleased heading:
 Below the new heading, add a link to the comparison of the last and current version tag.
 
 ```md
-[M.m.p]: https://github.com/infolektuell/gradle-jextract/compare/vlM.lm.lp...vM.m.p
+[M.m.p]: https://github.com/infolektuell/gradle-jpackage/compare/vlM.lm.lp...vM.m.p
 ```
 
 Update the link for the Unreleased heading to compare the unreleased commits with the current release.
 
 ```md
-[unreleased]: https://github.com/infolektuell/gradle-jextract/compare/vM.m.p...HEAD
+[unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/vM.m.p...HEAD
 ```
 
 ### Update release notes
