@@ -85,7 +85,7 @@ application {
 
 ##  Inspect the tasks
 
-The plugin uses the `build/jpackage` directory for its outputs and adds its tasks to the Application group:
+The plugin adds its tasks to the Application group:
 
 <Tabs syncKey="os">
 <TabItem label="Windows">
@@ -113,3 +113,24 @@ gradlew.bat tasks
 Probably the project needs some additional configuration.
 The following guides cover different setups and use-cases.
 :::
+
+All tasks use the `build/jpackage` directory for its outputs
+
+<FileTree>
+
+- jTunes
+  - build
+    - ...
+    - **jpackage**
+      - image/ the application image
+      - input/ non-modular files to be included as app content
+      - install/ the app installer
+      - jdeps/
+        - jdeps-results.txt the app's module dependencies found by Jdeps
+      - runtime/ the custom runtime image
+    - ...
+  - build.gradle.kts
+- settings.gradle.kts
+
+</FileTree>
+
