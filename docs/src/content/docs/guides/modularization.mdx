@@ -1,11 +1,15 @@
 ---
 title: App Modularization Tutorial
 sidebar:
-  order: 2
+  order: 3
   label: Modularization
 ---
 
-Modularizing Java code is **highly recommended** and should be done if ever possible.
+Jpackage can also package non-modular apps.
+Here, the main jar is not included in the runtime image but added to the app content.
+For non-modular apps, the Jpackage plugin uses Jdeps to infer the required modules to be included in the runtime image.
+
+But modularizing Java code is **highly recommended** and should be done if ever possible.
 This tutorial demonstrates how the Jpackage plugin can facilitate the modularization a non-modular application.
 
 ## Prerequisites
@@ -20,7 +24,6 @@ This can be a real hustle, because the module names of many popular libraries ar
 If the module name is not documented, it should be findable in the source code, e.g., [Guava][guava module].
 
 Luckily, this process can be shortened by using the Jdeps tool.
-For non-modular apps, the Jpackage plugin uses Jdeps to infer the required modules to be included in the runtime image.
 We can use the Jdeps output as information source for the module requirements.
 There are two options:
 

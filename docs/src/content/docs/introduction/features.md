@@ -12,7 +12,7 @@ It seamlessly integrates with the Java plugin and with the application plugin if
 ## Goals
 
 - Streamlining the development of Java-based cross-platform apps
-- Supporting the adoption of Java modules (JPMS)
+- Encouraging the adoption of Java modules (JPMS)
 - Providing general solutions instead of edge case implementations by combining all the useful tools included in the JDK
 
 ## Features
