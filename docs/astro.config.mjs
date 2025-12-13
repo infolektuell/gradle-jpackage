@@ -39,13 +39,11 @@ export default defineConfig({
                     label: 'Guides',
                     autogenerate: { directory: 'guides' },
                 },
-                /*
                 {
                     label: 'API Docs',
                     link: 'https://infolektuell.github.io/gradle-jpackage/reference/',
                     attrs: { target: '_blank' },
                 },
-                 */
             ],
         }),
     ],

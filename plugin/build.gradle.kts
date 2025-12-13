@@ -70,6 +70,7 @@ tasks.named<Task>("check") {
 
 tasks.withType<Javadoc>().configureEach {
     (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:all,-missing", "-quiet")
+    destinationDir = rootProject.layout.projectDirectory.dir("docs/public/reference").asFile
 }
 
 tasks.named<Test>("test") {
