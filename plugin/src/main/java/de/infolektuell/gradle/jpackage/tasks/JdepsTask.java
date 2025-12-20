@@ -47,15 +47,15 @@ public abstract class JdepsTask extends JDKToolTask {
     @Nested
     public abstract Property<@NonNull Modularity> getModularity();
 
-    @Option(option = "--recursive", description = "Recursively traverse all run-time dependencies.")
+    /** Recursively traverse all run-time dependencies. */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getRecursive();
 
-    @Option(option = "--print-module-deps", description = """
-        Same as --list-reduced-deps with printing,   a comma-separated list of module dependencies.
-        This output can be used by jlink --add-modules in order to create a custom image containing those modules and their transitive dependencies.
-        """)
+    /**
+     *         Same as --list-reduced-deps with printing,   a comma-separated list of module dependencies.
+     *         This output can be used by jlink --add-modules in order to create a custom image containing those modules and their transitive dependencies.
+     */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getPrintModuleDeps();
