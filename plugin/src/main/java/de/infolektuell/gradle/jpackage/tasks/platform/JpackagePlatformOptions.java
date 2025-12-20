@@ -1,4 +1,6 @@
 package de.infolektuell.gradle.jpackage.tasks.platform;
 
-public sealed interface JpackagePlatformOptions permits JpackageLinuxOptions, JpackageMacOSOptions, JpackageWindowsOptions {
+import org.gradle.process.CommandLineArgumentProvider;
+
+public sealed interface JpackagePlatformOptions extends CommandLineArgumentProvider permits JpackageLinuxOptions, JpackageMacOSOptions, JpackageWindowsOptions {
 }

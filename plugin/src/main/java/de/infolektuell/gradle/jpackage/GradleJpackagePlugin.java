@@ -12,8 +12,8 @@ import de.infolektuell.gradle.jpackage.tasks.platform.JpackageWindowsOptions;
 import de.infolektuell.gradle.jpackage.tasks.providers.ModulePathProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.*;
-import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
@@ -41,12 +41,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
      * The plugin ID
      */
     public static final String PLUGIN_NAME = "de.infolektuell.jpackage";
-
-    @Inject
-    protected abstract ArchiveOperations getArchiveOperations();
-
-    @Inject
-    protected abstract ObjectFactory getObjects();
 
     @Inject
     protected abstract JavaToolchainService getJavaToolchainService();
@@ -116,6 +110,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         final TaskProvider<@NonNull JpackageTask> appImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
             task.setGroup("application");
             task.setDescription("Generates a native app image");
+            task.getVerbose().convention(project.getLogger().isInfoEnabled());
             task.getType().convention("app-image");
             task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
             task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
@@ -145,6 +140,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         project.getTasks().register("appInstaller", JpackageTask.class, task -> {
             task.setGroup("application");
             task.setDescription("Generates a native app installer");
+            task.getVerbose().convention(project.getLogger().isInfoEnabled());
             task.getType().convention(osName.flatMap(os -> {
                 if (isWindows(os))
                     return jpackageExtension.getWindows().getInstallerType().map(WindowsHandler.InstallerType::toString);
@@ -184,15 +180,15 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         });
 
         project.getPluginManager().withPlugin("java", javaPlugin -> {
-            final JavaPluginExtension java = project.getExtensions().getByType(JavaPluginExtension.class);
-            java.manifest().getAttributes().put("Main-Class", jpackageExtension.getLauncher().getMainClass());
-            java.getSourceSets().configureEach(s -> {
+            final JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            javaExtension.manifest().getAttributes().put("Main-Class", jpackageExtension.getLauncher().getMainClass());
+            javaExtension.getSourceSets().configureEach(s -> {
                 final SourceSetExtension patchModule = s.getExtensions().create(SourceSetExtension.EXTEnSION_NAME, SourceSetExtension.class, project.getObjects());
                 project.getTasks().withType(JavaCompile.class).named(s.getCompileTaskName("Java"), task -> task.getOptions().getCompilerArgumentProviders().add(patchModule));
             });
 
             project.getTasks().withType(JDKToolTask.class, task -> {
-                final Provider<@NonNull JavaInstallationMetadata> metadata = getJavaToolchainService().launcherFor(java.getToolchain())
+                final Provider<@NonNull JavaInstallationMetadata> metadata = getJavaToolchainService().launcherFor(javaExtension.getToolchain())
                     .orElse(getJavaToolchainService().launcherFor(spec -> {
                     }))
                     .map(JavaLauncher::getMetadata);
@@ -201,7 +197,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
             final TaskProvider<@NonNull Jar> jarTask = project.getTasks().withType(Jar.class).named("jar");
             final Provider<@NonNull RegularFile> mainJar = jarTask.flatMap(AbstractArchiveTask::getArchiveFile);
-            modulePathProvider.getClasspath().from(mainJar, java.getSourceSets().named("main").map(s -> s.getRuntimeClasspath().filter(File::isFile)));
+            modulePathProvider.getClasspath().from(mainJar, javaExtension.getSourceSets().named("main").map(s -> s.getRuntimeClasspath().filter(File::isFile)));
 
             final Provider<@NonNull Modularity> modularity = project.getProviders().provider(() -> {
                 if (launcher.getMainModule().isPresent()) {
@@ -221,7 +217,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                 task.getModulePath().from(modulePathProvider.getModulePath());
                 task.getClassPath().from(modulePathProvider.getNonModulePath());
                 task.getModularity().convention(modularity);
-                task.getMultiRelease().convention(java.getToolchain().getLanguageVersion());
+                task.getMultiRelease().convention(javaExtension.getToolchain().getLanguageVersion());
             });
 
             prepareInputTask.configure(task -> {

@@ -3,10 +3,7 @@ package de.infolektuell.gradle.jpackage.tasks;
 import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
 import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
 import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
-import de.infolektuell.gradle.jpackage.tasks.platform.JpackageLinuxOptions;
-import de.infolektuell.gradle.jpackage.tasks.platform.JpackageMacOSOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
-import de.infolektuell.gradle.jpackage.tasks.platform.JpackageWindowsOptions;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
 import org.gradle.api.provider.ListProperty;
@@ -44,71 +41,72 @@ public abstract class JpackageTask extends JDKToolTask {
     @Input
     public abstract Property<@NonNull String> getType();
 
-    @Option(option = "app-version", description = "Version of the application and/or package")
+    /** Version of the application and/or package */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppVersion();
 
-    @Option(option = "copyright", description = "Copyright for the application")
+    /** Copyright for the application */
     @Optional
     @Input
     public abstract Property<@NonNull String> getCopyright();
 
-    @Option(option = "description", description = "Description of the application")
+    /** Description of the application */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppDescription();
 
-    @Option(option = "icon", description = """
-        Path of the icon of the application package
-            (absolute path or relative to the current directory)""\")
-        """)
+    /**
+     *         Path of the icon of the application package
+     *             (absolute path or relative to the current directory)
+     */
     @Optional
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getIcon();
 
-    @Option(option = "name", description = "Name of the application and/or package")
+    /** Name of the application and/or package */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppName();
 
-    @Option(option = "dest", description = """
-        Path where generated output file is placed
-        (absolute path or relative to the current directory)
-        Defaults to the current working directory.
-        """)
+    /**
+     *         Path where generated output file is placed
+     *         (absolute path or relative to the current directory)
+     *         Defaults to the current working directory.
+     */
     @OutputDirectory
     public abstract DirectoryProperty getDest();
 
-    @Option(option = "vendor", description = "Vendor of the application")
+    /** Vendor of the application */
     @Optional
     @Input
     public abstract Property<@NonNull String> getVendor();
 
-    @Option(option = "verbose", description = "Enables verbose output")
+    /** Enables verbose output */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getVerbose();
 
-    @Option(option = "runtime-image", description = """
-          Path of the predefined runtime image that will be copied into the application image
-          (absolute path or relative to the current directory)
-          If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
-          --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
-          Option is required when creating a runtime package.
-        """)
+    /**
+     *           Path of the predefined runtime image that will be copied into the application image
+     *           (absolute path or relative to the current directory)
+     *           If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
+     *           --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
+     *           Option is required when creating a runtime package.
+     */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getRuntimeImage();
 
     // Options for creating the application image
-    @Option(option = "input", description = """
-          Path of the input directory that contains the files to be packaged
-          (absolute path or relative to the current directory)
-          All files in the input directory will be packaged into the application image.
-        """)
+
+    /**
+     *           Path of the input directory that contains the files to be packaged
+     *           (absolute path or relative to the current directory)
+     *           All files in the input directory will be packaged into the application image.
+     */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -119,21 +117,22 @@ public abstract class JpackageTask extends JDKToolTask {
     public abstract ConfigurableFileCollection getAppContent();
 
     // Options for creating the application launcher(s):
+
     @Input
     public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
 
-    @Option(option = "arguments", description = """
-          Command line arguments to pass to the main class if no command line arguments are given to the launcher
-          This option can be used multiple times.
-        """)
+    /**
+     *           Command line arguments to pass to the main class if no command line arguments are given to the launcher
+     *           This option can be used multiple times.
+     */
     @Optional
     @Input
     public abstract ListProperty<@NonNull String> getArguments();
 
-    @Option(option = "java-options", description = """
-          Options to pass to the Java runtime
-          This option can be used multiple times.
-        """)
+    /**
+     *           Options to pass to the Java runtime
+     *           This option can be used multiple times.
+     */
     @Optional
     @Input
     public abstract ListProperty<@NonNull String> getJavaOptions();
@@ -147,12 +146,13 @@ public abstract class JpackageTask extends JDKToolTask {
     public abstract Property<@NonNull JpackagePlatformOptions> getPlatformOptions();
 
     // Options for creating the application package
-    @Option(option = "about-url", description = "URL of the application's home page")
+
+    /** URL of the application's home page */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAboutURL();
 
-    @Option(option = "app-image", description = "Location of the predefined application image that is used to build an installable package or to sign the predefined application image")
+    /** Location of the predefined application image that is used to build an installable package or to sign the predefined application image */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -169,26 +169,26 @@ public abstract class JpackageTask extends JDKToolTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getInstallDir();
 
-    @Option(option = "license-file", description = """
-          Path to the license file
-          (absolute path or relative to the current directory)
-        """)
+    /**
+     *           Path to the license file
+     *           (absolute path or relative to the current directory)
+     */
     @Optional
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getLicenseFile();
 
-    @Option(option = "resource-dir", description = """
-          Path to override jpackage resources
-          Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
-          (absolute path or relative to the current directory)
-        """)
+    /**
+     *           Path to override jpackage resources
+     *           Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
+     *           (absolute path or relative to the current directory)
+     */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getResourceDir();
 
-    @Option(option = "launcher-as-service", description = "Request to create an installer that will register the main application launcher as a background service-type application.")
+    /** Request to create an installer that will register the main application launcher as a background service-type application. */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getLauncherAsService();
@@ -235,64 +235,8 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getResourceDir().isPresent()) spec.args("--resource-dir", getResourceDir().get());
             if (getLauncherAsService().getOrElse(false)) spec.args("--launcher-as-service");
 
-            switch (getPlatformOptions().getOrNull()) {
-                case JpackageLinuxOptions linux -> {
-                    if (linux.getLinuxPackageName().isPresent())
-                        spec.args("--linux-package-name", linux.getLinuxPackageName().get());
-                    if (linux.getLinuxDebMaintainer().isPresent())
-                        spec.args("--linux-deb-maintainer", linux.getLinuxDebMaintainer().get());
-                    if (linux.getLinuxMenuGroup().isPresent())
-                        spec.args("--linux-menu-group", linux.getLinuxMenuGroup().get());
-                    if (linux.getLinuxPackageDeps().isPresent())
-                        spec.args("--linux-package-deps", linux.getLinuxPackageDeps().get());
-                    if (linux.getLinuxRPMLicenseType().isPresent())
-                        spec.args("--linux-rpm-license-type", linux.getLinuxRPMLicenseType().get());
-                    if (linux.getLinuxAppRelease().isPresent())
-                        spec.args("--linux-app-release", linux.getLinuxAppRelease().get());
-                    if (linux.getLinuxAppCategory().isPresent())
-                        spec.args("--linux-app-category", linux.getLinuxAppCategory().get());
-                    if (linux.getLinuxShortcut().getOrElse(false)) spec.args("--linux-shortcut");
-                }
-                case JpackageMacOSOptions mac -> {
-                    if (mac.getMacPackageIdentifier().isPresent())
-                        spec.args("--mac-package-identifier", mac.getMacPackageIdentifier().get());
-                    if (mac.getMacPackageName().isPresent())
-                        spec.args("--mac-package-name", mac.getMacPackageName().get());
-                    if (mac.getMacPackageSigningPrefix().isPresent())
-                        spec.args("--mac-package-signing-prefix", mac.getMacPackageSigningPrefix().get());
-                    if (mac.getMacSign().getOrElse(false)) spec.args("--mac-sign");
-                    if (mac.getMacSigningKeychain().isPresent())
-                        spec.args("--mac-signing-keychain", mac.getMacSigningKeychain().get());
-                    if (mac.getMacSigningKeyUserName().isPresent())
-                        spec.args("--mac-signing-key-user-name", mac.getMacSigningKeyUserName().get());
-                    if (mac.getMacAppImageSignIdentity().isPresent())
-                        spec.args("--mac-app-image-sign-identity", mac.getMacAppImageSignIdentity().get());
-                    if (mac.getMacInstallerSignIdentity().isPresent())
-                        spec.args("--mac-installer-sign-identity", mac.getMacInstallerSignIdentity().get());
-                    if (mac.getMacAppStore().isPresent()) spec.args("--mac-app-store");
-                    if (mac.getMacEntitlements().isPresent())
-                        spec.args("--mac-entitlements", mac.getMacEntitlements().get());
-                    if (mac.getMacAppCategory().isPresent())
-                        spec.args("--mac-app-category", mac.getMacAppCategory().get());
-                    if (mac.getMacDMGContent().isPresent()) spec.args("--dmg-content", mac.getMacDMGContent().get());
-                }
-                case JpackageWindowsOptions win -> {
-                    if (win.getWinConsole().getOrElse(false)) spec.args("--win-console");
-                    if (win.getWinDirChooser().getOrElse(false)) spec.args("--win-dir-chooser");
-                    if (win.getWinHelpURL().isPresent()) spec.args("--win-help-url", win.getWinHelpURL().get());
-                    if (win.getWinMenu().getOrElse(false)) spec.args("win-menu");
-                    if (win.getWinMenuGroup().isPresent()) spec.args("--win-menu-group", win.getWinMenuGroup().get());
-                    if (win.getWinPerUserInstall().getOrElse(false)) spec.args("--win-per-user-install");
-                    if (win.getWinShortcut().getOrElse(false)) spec.args("--win-shortcut");
-                    if (win.getWinShortcutPrompt().getOrElse(false)) spec.args("--win-shortcut-prompt");
-                    if (win.getWinUpdateURL().isPresent()) spec.args("--win-update-url", win.getWinUpdateURL().get());
-                    if (win.getWinUpgradeUUID().isPresent())
-                        spec.args("--win-upgrade-uuid", win.getWinUpgradeUUID().get());
-                }
-                case null -> {
-                }
-            }
-            if (getLogger().isInfoEnabled()) spec.args("--verbose");
+            if (getPlatformOptions().isPresent()) spec.getArgumentProviders().add(getPlatformOptions().get());
+            if (getVerbose().getOrElse(false)) spec.args("--verbose");
         });
     }
 }
