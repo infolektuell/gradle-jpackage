@@ -1,5 +1,3 @@
-- Tasks for Jdeps, Jlink, and Jpackage.
-- connects the Java and Application plugins with these tools and sets sensible conventions.
-- Infers the module dependencies for non-modular apps using Jdeps.
-- Configurable via DSL extension `jpackage`.
-- Offers a source set extension for easier module patching, e.g., for Kotlin interop.
+- Adds modular dependencies of non-modular apps to the run task from the Application plugin.
+- Run task becomes compatible with configuration cache.
+- Pass-through CLI options in JpackageTask were replaced with documentation comments.

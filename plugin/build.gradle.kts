@@ -3,6 +3,9 @@ plugins {
     id("com.gradle.plugin-publish") version "2.0.0"
 }
 
+group = "de.infolektuell"
+description = "Gradle plugin that uses Jpackage to create native installers for java apps"
+
 val releaseVersion = releaseVersion()
 val releaseNotes = releaseNotes()
 version = releaseVersion.get()
