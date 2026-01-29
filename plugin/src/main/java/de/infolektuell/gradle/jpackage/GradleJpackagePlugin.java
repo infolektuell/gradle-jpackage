@@ -58,10 +58,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             data.getDescription().convention(project.getDescription());
             data.getVendor().convention(project.getGroup().toString());
         });
-        jpackageExtension.getLinux().getPackageName().convention(jpackageExtension.getPackageName());
-        jpackageExtension.getMac().getPackageName().convention(jpackageExtension.getPackageName());
-        jpackageExtension.getLinux().getShortcut().convention(jpackageExtension.getShortcut());
-        jpackageExtension.getWindows().getShortcut().convention(jpackageExtension.getShortcut());
+        jpackageExtension.getLinux().getPackageName().convention(jpackageExtension.getCommon().getPackageName());
+        jpackageExtension.getMac().getPackageName().convention(jpackageExtension.getCommon().getPackageName());
+        jpackageExtension.getLinux().getShortcut().convention(jpackageExtension.getCommon().getShortcut());
+        jpackageExtension.getWindows().getShortcut().convention(jpackageExtension.getCommon().getShortcut());
         jpackageExtension.getLauncher().getLauncherAsService().convention(false);
 
         final TaskProvider<@NonNull JdepsTask> jdepsTask = project.getTasks().register("jdeps", JdepsTask.class, task -> {
@@ -115,14 +115,14 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
             task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
             task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
-            task.getAppContent().from(jpackageExtension.getContent());
+            task.getAppContent().from(jpackageExtension.getCommon().getContent());
             launcher.getLaunchers().all(it -> task.getAdditionalLaunchers().add(it));
             task.getArguments().convention(jpackageExtension.getLauncher().getArguments());
             task.getJavaOptions().convention(jpackageExtension.getLauncher().getJavaOptions());
             Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
                 if (isWindows(os)) {
                     final JpackageWindowsOptions win = project.getObjects().newInstance(JpackageWindowsOptions.class);
-                    win.getWinConsole().convention(jpackageExtension.getIsCommandLineApplication());
+                    win.getWinConsole().convention(jpackageExtension.getCommon().getIsCommandLineApplication());
                     return win;
                 } else if (isMac(os)) {
                     final JpackageMacOSOptions mac = project.getObjects().newInstance(JpackageMacOSOptions.class);
@@ -154,9 +154,9 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             task.getApplicationImage().convention(appImageProvider);
             task.getAboutURL().convention(jpackageExtension.getMetadata().getAboutUrl());
             task.getLicenseFile().convention(jpackageExtension.getMetadata().getLicenseFile());
-            task.getFileAssociations().convention(jpackageExtension.getFileAssociations());
-            task.getInstallDir().convention(jpackageExtension.getInstallDir());
-            task.getResourceDir().convention(jpackageExtension.getResourceDir());
+            task.getFileAssociations().convention(jpackageExtension.getCommon().getFileAssociations());
+            task.getInstallDir().convention(jpackageExtension.getCommon().getInstallDir());
+            task.getResourceDir().convention(jpackageExtension.getCommon().getResourceDir());
             Provider<@NonNull JpackagePlatformOptions> platformOptions = osName.map(os -> {
                 if (isWindows(os)) {
                     final JpackageWindowsOptions win = project.getObjects().newInstance(JpackageWindowsOptions.class);

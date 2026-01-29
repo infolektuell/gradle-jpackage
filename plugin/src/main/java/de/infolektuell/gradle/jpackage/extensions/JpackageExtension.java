@@ -1,11 +1,6 @@
 package de.infolektuell.gradle.jpackage.extensions;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.RegularFile;
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Nested;
 import org.jspecify.annotations.NonNull;
 
@@ -39,6 +34,16 @@ public abstract class JpackageExtension {
     }
 
     /**
+     * Options shared across all platforms (if applicable)
+     */
+    @Nested
+    public abstract CommonHandler getCommon();
+
+    public void common(Action<@NonNull CommonHandler> action) {
+        action.execute(getCommon());
+    }
+
+    /**
      * Windows-specific options
      */
     @Nested
@@ -67,23 +72,4 @@ public abstract class JpackageExtension {
     public void linux(Action<@NonNull LinuxHandler> action) {
         action.execute(getLinux());
     }
-
-    /**
-     * Additional directories to be added to the app payload
-     */
-    public abstract ConfigurableFileCollection getContent();
-    public abstract Property<@NonNull Boolean> getIsCommandLineApplication();
-
-    /**
-     * Files to describe file associations
-     */
-    public abstract SetProperty<@NonNull RegularFile> getFileAssociations();
-
-    public abstract DirectoryProperty getInstallDir();
-
-    public abstract DirectoryProperty getResourceDir();
-
-    public abstract Property<@NonNull String> getPackageName();
-
-    public abstract Property<@NonNull Boolean> getShortcut();
 }

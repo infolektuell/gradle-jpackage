@@ -6,6 +6,7 @@ import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -24,6 +25,16 @@ public abstract class JpackageTask extends JDKToolTask {
         var matcher = versionPattern.matcher(version);
         return matcher.find();
     }
+
+    private final NamedDomainObjectSet<@NonNull Launcher> additionalLaunchers;
+
+    public JpackageTask() {
+        super();
+        this.additionalLaunchers = getObjects().domainObjectContainer(Launcher.class);
+    }
+
+    @Inject
+    protected abstract ObjectFactory getObjects();
 
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
@@ -119,7 +130,7 @@ public abstract class JpackageTask extends JDKToolTask {
     // Options for creating the application launcher(s):
 
     @Input
-    public abstract NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers();
+    public NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers() { return additionalLaunchers; }
 
     /**
      *           Command line arguments to pass to the main class if no command line arguments are given to the launcher
