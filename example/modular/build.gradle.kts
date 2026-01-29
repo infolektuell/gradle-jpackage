@@ -31,7 +31,7 @@ jpackage {
         mainModule = "example.app"
         mainClass = "org.example.App"
     }
-    isCommandLineApplication = true
+    common.isCommandLineApplication = true
 }
 
 tasks.named<Test>("test") {
