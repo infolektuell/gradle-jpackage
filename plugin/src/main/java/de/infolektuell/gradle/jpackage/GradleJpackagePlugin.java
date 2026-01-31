@@ -11,7 +11,6 @@ import de.infolektuell.gradle.jpackage.tasks.platform.JpackageLinuxOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackageMacOSOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackageWindowsOptions;
-import de.infolektuell.gradle.jpackage.tasks.providers.ModulePathProvider;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -83,15 +82,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             javaExtension.getSourceSets().configureEach(s -> {
                 final SourceSetExtension sourceSetExtension = project.getObjects().newInstance(SourceSetExtension.class);
                 s.getExtensions().add(SourceSetExtension.EXTEnSION_NAME, sourceSetExtension);
-                final Provider<@NonNull Boolean> isModule = s.getAllJava().getSourceDirectories().filter(Modules::isModule).getElements().map(e -> !e.isEmpty());
-                    sourceSetExtension.getInferModulePath().convention(isModule);
                 project.getTasks().named(s.getCompileTaskName("Java"), JavaCompile.class, task -> {
-                    task.getModularity().getInferModulePath().set(sourceSetExtension.getInferModulePath().map(x -> !x));
-                    final ModulePathProvider provider = project.getObjects().newInstance(ModulePathProvider.class);
-                    provider.getIsEnabled().convention(sourceSetExtension.getInferModulePath());
-                    provider.getFullClasspath().from(task.getClasspath());
-                    task.setClasspath(provider.getClasspath());
-                    task.getOptions().getCompilerArgumentProviders().add(provider);
                     task.getOptions().getCompilerArgumentProviders().add(sourceSetExtension.getPatchModule());
                 });
             });
