@@ -1,5 +1,5 @@
 plugins {
-    java
+    application
     id("de.infolektuell.jpackage")
 }
 
@@ -25,11 +25,12 @@ java {
     }
 }
 
+application {
+    applicationName = "Sample"
+    mainClass = "org.example.App"
+}
+
 jpackage {
-    metadata.name = "Sample"
-    launcher {
-        mainClass = "org.example.App"
-    }
     common.isCommandLineApplication = true
 }
 

@@ -13,10 +13,10 @@ import java.util.List;
 
 public abstract class ModulePathProvider implements CommandLineArgumentProvider {
     @Input
-    public abstract Property<@NonNull Boolean> getInferModulePath();
+    public abstract Property<@NonNull Boolean> getIsEnabled();
 
     @InputFiles
-    @Classpath
+    @CompileClasspath
     public abstract ConfigurableFileCollection getFullClasspath();
 
     @Optional
@@ -25,18 +25,17 @@ public abstract class ModulePathProvider implements CommandLineArgumentProvider 
 
     @Internal
     public FileCollection getModulePath() {
-        return getFullClasspath().filter(Modules::isModule);
+        return getFullClasspath().filter(f -> getIsEnabled().get() && Modules.isModule(f));
     }
 
     @Internal
     public FileCollection getClasspath() {
-        return getInferModulePath().getOrElse(false) ? getFullClasspath().filter(f -> !Modules.isModule(f)) : getFullClasspath();
+        return getIsEnabled().getOrElse(false) ? getFullClasspath().filter(f -> !Modules.isModule(f)) : getFullClasspath();
     }
 
     @Override
     public Iterable<String> asArguments() {
         List<String> args = new ArrayList<>();
-        if (!getInferModulePath().getOrElse(false)) return args;
         if (getModulePath().isEmpty()) return args;
         args.add("--module-path");
         args.add(getModulePath().getAsPath());

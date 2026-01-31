@@ -1,8 +1,5 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
-import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
@@ -38,6 +35,17 @@ public abstract class JpackageTask extends JDKToolTask {
 
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
+
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getMainModule();
+
+    @Input
+    public abstract Property<@NonNull String> getMainClass();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getMainJar();
 
     // Generic Options:
 
@@ -150,10 +158,6 @@ public abstract class JpackageTask extends JDKToolTask {
 
     @Optional
     @Nested
-    public abstract Property<@NonNull Modularity> getModularity();
-
-    @Optional
-    @Nested
     public abstract Property<@NonNull JpackagePlatformOptions> getPlatformOptions();
 
     // Options for creating the application package
@@ -227,15 +231,11 @@ public abstract class JpackageTask extends JDKToolTask {
             getAdditionalLaunchers().forEach(launcher -> spec.args("--add-launcher", String.join("=", launcher.getName(), launcher.getFile().get().getAsFile().getAbsolutePath())));
             if (getArguments().isPresent()) getArguments().get().forEach(a -> spec.args("--arguments", a));
             if (getJavaOptions().isPresent()) getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
-            switch (getModularity().getOrNull()) {
-                case Modular modular ->
-                    spec.args("--module", String.join("/", modular.getMainModule().get(), modular.getMainClass().get()));
-                case NonModular nonModular -> {
-                    spec.args("--main-class", nonModular.getMainClass().get());
-                    spec.args("--main-jar", nonModular.getMainJar().get().getAsFile().getName());
-                }
-                case null -> {
-                }
+            if (getMainModule().isPresent()) {
+                spec.args("--module", String.join("/", getMainModule().get(), getMainClass().get()));
+            } else {
+                spec.args("--main-class", getMainClass().get());
+                spec.args("--main-jar", getMainJar().get().getAsFile().getName());
             }
 
             if (getApplicationImage().isPresent()) spec.args("--app-image", getApplicationImage().get());

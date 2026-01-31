@@ -1,14 +1,12 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modular;
-import de.infolektuell.gradle.jpackage.tasks.modularity.Modularity;
-import de.infolektuell.gradle.jpackage.tasks.modularity.NonModular;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.file.*;
+import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
+import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.jspecify.annotations.NonNull;
 
@@ -19,6 +17,16 @@ import java.nio.file.Path;
 
 @CacheableTask
 public abstract class JdepsTask extends JDKToolTask {
+    @Nested
+    public abstract ListProperty<@NonNull CommandLineArgumentProvider> getArgumentProviders();
+
+    /**
+     * The class files to be analyzed (entries can be .class files, .jar files, or directories)
+     */
+    @Classpath
+    @InputFiles
+    public abstract ConfigurableFileCollection getSource();
+
     /**
      * Specify where to find class files
      */
@@ -27,7 +35,7 @@ public abstract class JdepsTask extends JDKToolTask {
     public abstract ConfigurableFileCollection getClassPath();
 
     /**
-     * Specify module path
+     * Specify where to find module files
      */
     @Classpath
     @InputFiles
@@ -36,16 +44,14 @@ public abstract class JdepsTask extends JDKToolTask {
     /**
      * Specify upgrade module path
      */
-    @Optional
     @Classpath
     @InputFiles
     public abstract ConfigurableFileCollection getUpgradeModulePath();
 
-    /**
-     * Specify options for either modular or nonmodular target, but not for both
-     */
-    @Nested
-    public abstract Property<@NonNull Modularity> getModularity();
+    /** Specify the root module for analysis */
+    @Optional
+    @Input
+    public abstract Property<@NonNull String> getModule();
 
     /** Recursively traverse all run-time dependencies. */
     @Optional
@@ -90,10 +96,9 @@ public abstract class JdepsTask extends JDKToolTask {
             if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");
             if (getIgnoreMissingDeps().getOrElse(false)) spec.args("--ignore-missing-deps");
             if (getMultiRelease().isPresent()) spec.args("--multi-release", getMultiRelease().get().asInt());
-            switch (getModularity().get()) {
-                case Modular modular -> spec.args("--module", modular.getMainModule().get());
-                case NonModular nonModular -> spec.args(nonModular.getMainJar().get());
-            }
+            if (getModule().isPresent()) spec.args("--module", getModule().get());
+            getArgumentProviders().get().forEach(p -> spec.getArgumentProviders().add(p));
+            getSource().forEach(spec::args);
         });
         final String output = s.toString();
         if (result.getExitValue() != 0) {
