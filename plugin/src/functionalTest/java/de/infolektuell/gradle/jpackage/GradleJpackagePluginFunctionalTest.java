@@ -18,7 +18,7 @@ class GradleJpackagePluginFunctionalTest {
 
     @Test
     void modularProject() {
-        var runner = createRunner("modular", "9.0.0");
+        var runner = createRunner("modular", "9.1.0");
         var result = runner.build();
         assertTrue(result.getOutput().contains("BUILD SUCCESSFUL"));
     }
