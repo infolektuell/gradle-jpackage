@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Scanner;
+import java.util.jar.Manifest;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -31,19 +31,16 @@ public class Modules {
         if (!file.isFile() || !file.exists() || !file.getName().endsWith(".jar")) return false;
         try (ZipFile zip = new ZipFile(file)) {
             if (zip.stream().anyMatch(e -> e.getName().endsWith("module-info.class"))) return true;
-            final ZipEntry manifest = zip.getEntry("META-INF/MANIFEST.MF");
-            if (Objects.isNull(manifest)) return false;
-            try (var input = zip.getInputStream(manifest)) {
-                var scanner = new Scanner(input);
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (line.contains("Automatic-Module-Name")) return true;
-                }
+            final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
+            if (Objects.isNull(manifestFile)) return false;
+            try(var input = zip.getInputStream(manifestFile)) {
+                var manifest = new Manifest();
+                manifest.read(input);
+                return Objects.nonNull(manifest.getMainAttributes().getValue("Automatic-Module-Name"));
             }
         } catch (Exception ignored) {
             return false;
         }
-        return false;
     }
 
     private static String directoryModuleName(File file) {
@@ -80,21 +77,15 @@ public class Modules {
                     return module.name();
                 }
             }
-            final ZipEntry manifest = zip.getEntry("META-INF/MANIFEST.MF");
-            if (Objects.isNull(manifest)) return null;
-            try (var input = zip.getInputStream(manifest)) {
-                var scanner = new Scanner(input);
-                while (scanner.hasNextLine()) {
-                    String line = scanner.nextLine();
-                    if (line.contains("Automatic-Module-Name")) {
-                        final String[] parts = line.split("\\w");
-                        return parts[parts.length - 1];
-                    }
-                }
+            final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
+            if (Objects.isNull(manifestFile)) return null;
+            try(var input = zip.getInputStream(manifestFile)) {
+                var manifest = new Manifest();
+                manifest.read(input);
+                return manifest.getMainAttributes().getValue("Automatic-Module-Name");
             }
         } catch (Exception ignored) {
             return null;
         }
-        return null;
     }
 }

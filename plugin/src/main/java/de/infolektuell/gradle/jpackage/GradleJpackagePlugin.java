@@ -30,10 +30,10 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
-import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -122,12 +122,18 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.setGroup("application");
                     task.setDescription("Run Jlink to generate a customized runtime image");
                     task.getMetadata().convention(installationMetadata);
-                    final Provider<@NotNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().getElements().zip(jmodElementsConfig.get().getElements(), (elements, jmods) -> {
+                    final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().getElements().zip(jmodElementsConfig.get().getElements(), (elements, jmods) -> {
                         if (jmods.isEmpty()) return elements;
                         final Set<String> jmodNames = jmods.stream().map(f -> Modules.moduleName(f.getAsFile())).collect(Collectors.toSet());
-                        return elements.stream().filter(e -> jmodNames.contains(Modules.moduleName(e.getAsFile()))).collect(Collectors.toSet());
+                        return elements.stream()
+                            .filter(e -> {
+                                final var jarName = Modules.moduleName(e.getAsFile());
+                                if (Objects.isNull(jarName)) return true;
+                                return !jmodNames.contains(jarName);
+                            })
+                            .collect(Collectors.toSet());
                     });
-                    task.getModulePath().from(jmodElementsConfig.get(), reduced);
+                    task.getModulePath().from(reduced, jmodElementsConfig.get());
                     task.getAddModules().add(moduleName.orElse(jdepsOutput));
                     task.getNoHeaderFiles().convention(true);
                     task.getNoManPages().convention(true);
