@@ -45,7 +45,7 @@ repositories {
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.3")
+    testImplementation("org.junit.jupiter:junit-jupiter:6.0.2")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
