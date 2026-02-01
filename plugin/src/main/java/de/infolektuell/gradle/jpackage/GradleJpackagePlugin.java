@@ -15,7 +15,6 @@ import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -32,12 +31,11 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Gradle plugin that creates native application installers using Jpackage
+ * Gradle plugin that creates native application installers using jpackage
  */
 public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
     /**
@@ -50,6 +48,16 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
     @Override
     public void apply(Project project) {
+        final NamedDomainObjectProvider<@NonNull Configuration> jlinkConfig = project.getConfigurations().register("jlink", config -> {
+            config.setCanBeConsumed(false);
+            config.setCanBeResolved(false);
+        });
+        final NamedDomainObjectProvider<@NonNull Configuration> jlinkElementsConfig = project.getConfigurations().register("jlinkElements", config -> {
+            config.setCanBeConsumed(false);
+            config.setCanBeResolved(true);
+            config.extendsFrom(jlinkConfig.get());
+        });
+
         final JpackageExtension jpackageExtension = project.getExtensions().create(JpackageExtension.EXTENSION_NAME, JpackageExtension.class);
         jpackageExtension.metadata(data -> {
             data.getName().convention(project.getName());
@@ -63,16 +71,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         jpackageExtension.getWindows().getShortcut().convention(jpackageExtension.getCommon().getShortcut());
         jpackageExtension.getLauncher().getLauncherAsService().convention(false);
 
-        final NamedDomainObjectProvider<@NonNull Configuration> jmodConfig = project.getConfigurations().register("jmod", config -> {
-            config.setCanBeConsumed(false);
-            config.setCanBeResolved(false);
-        });
-        final NamedDomainObjectProvider<@NonNull Configuration> jmodElementsConfig = project.getConfigurations().register("jmodElements", config -> {
-            config.setCanBeConsumed(false);
-            config.setCanBeResolved(true);
-            config.extendsFrom(jmodConfig.get());
-        });
-
         project.getPluginManager().withPlugin("java", javaPlugin -> {
             final JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             final Provider<@NonNull JavaInstallationMetadata> installationMetadata = getJavaToolchainService().launcherFor(javaExtension.getToolchain())
@@ -82,16 +80,14 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             javaExtension.getSourceSets().configureEach(s -> {
                 final SourceSetExtension sourceSetExtension = project.getObjects().newInstance(SourceSetExtension.class);
                 s.getExtensions().add(SourceSetExtension.EXTEnSION_NAME, sourceSetExtension);
-                project.getTasks().named(s.getCompileTaskName("Java"), JavaCompile.class, task -> {
-                    task.getOptions().getCompilerArgumentProviders().add(sourceSetExtension.getPatchModule());
-                });
+                project.getTasks().named(s.getCompileTaskName("Java"), JavaCompile.class, task -> task.getOptions().getCompilerArgumentProviders().add(sourceSetExtension.getPatchModule()));
             });
 
             javaExtension.getSourceSets().named("main").configure(s -> {
                 final Provider<@NonNull String> moduleName = s.getJava().getClassesDirectory().map(dir -> Modules.moduleName(dir.getAsFile()));
-                final ConfigurableFileCollection fullClasspath = project.getObjects().fileCollection().from(s.getJava().getClassesDirectory(), s.getCompileClasspath());
-                final FileCollection modules = fullClasspath.filter(Modules::isModule);
-                final FileCollection nonModules = fullClasspath.minus(modules);
+                jpackageExtension.getLauncher().getMainModule().convention(moduleName);
+                final FileCollection modules = s.getRuntimeClasspath().filter(Modules::isModule);
+                final FileCollection nonModules = s.getRuntimeClasspath().minus(modules);
 
                 final TaskProvider<@NonNull JdepsTask> jdepsTask = project.getTasks().register(s.getTaskName("find", "moduleDeps"), JdepsTask.class, task -> {
                     task.setGroup("application");
@@ -99,7 +95,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.getMetadata().convention(installationMetadata);
                     task.getClassPath().from(nonModules);
                     task.getModulePath().from(modules);
-                    task.getModule().convention(moduleName);
+                    task.getModule().convention(jpackageExtension.getLauncher().getMainModule());
                     task.getSource().from(s.getJava().getClassesDirectory());
                     task.getRecursive().convention(true);
                     task.getPrintModuleDeps().convention(true);
@@ -107,25 +103,20 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.getMultiRelease().convention(javaExtension.getToolchain().getLanguageVersion());
                     task.getDestinationFile().convention(project.getLayout().getBuildDirectory().file("jdeps/" + s.getName() + "/jdeps-result.txt"));
                 });
-                final Provider<@NonNull String> jdepsOutput = project.getProviders().fileContents(jdepsTask.flatMap(JdepsTask::getDestinationFile)).getAsText().map(String::trim).orElse("ALL_MODULE_PATH");
 
                 final TaskProvider<@NonNull JlinkTask> jlinkTask = project.getTasks().register(s.getTaskName("generate", "runtimeImage"), JlinkTask.class, task -> {
                     task.setGroup("application");
                     task.setDescription("Run Jlink to generate a customized runtime image");
                     task.getMetadata().convention(installationMetadata);
-                    final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().getElements().zip(jmodElementsConfig.get().getElements(), (elements, jmods) -> {
+                    final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().getElements().zip(jlinkElementsConfig.get().getElements(), (elements, jmods) -> {
                         if (jmods.isEmpty()) return elements;
                         final Set<String> jmodNames = jmods.stream().map(f -> Modules.moduleName(f.getAsFile())).collect(Collectors.toSet());
                         return elements.stream()
-                            .filter(e -> {
-                                final var jarName = Modules.moduleName(e.getAsFile());
-                                if (Objects.isNull(jarName)) return true;
-                                return !jmodNames.contains(jarName);
-                            })
+                            .filter(e -> !jmodNames.contains(Modules.moduleName(e.getAsFile())))
                             .collect(Collectors.toSet());
                     });
-                    task.getModulePath().from(reduced, jmodElementsConfig.get());
-                    task.getAddModules().add(moduleName.orElse(jdepsOutput));
+                    task.getModulePath().from(jlinkElementsConfig.get(), reduced);
+                    task.getAddModules().add(jpackageExtension.getLauncher().getMainModule().orElse(jdepsTask.flatMap(JdepsTask::getResult)));
                     task.getNoHeaderFiles().convention(true);
                     task.getNoManPages().convention(true);
                     task.getStripDebug().convention(true);
@@ -135,8 +126,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
                 project.getPluginManager().withPlugin("application", p -> {
                     final JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
-                    application.getMainModule().convention(moduleName);
-                    jpackageExtension.getLauncher().getMainModule().convention(application.getMainModule());
+                    jpackageExtension.getLauncher().getMainModule().convention(application.getMainModule().orElse(moduleName));
                     jpackageExtension.getLauncher().getMainClass().convention(application.getMainClass());
                     jpackageExtension.getMetadata().getName().convention(project.getProviders().provider(application::getApplicationName));
                     jpackageExtension.getLauncher().getJavaOptions().convention(project.getProviders().provider(application::getApplicationDefaultJvmArgs));
@@ -234,7 +224,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                         task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/install"));
                     });
                 });
-
             });
         });
     }
