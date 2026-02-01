@@ -17,6 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - The plugin doesn't modify any source set classpath, so there should be less interference with other plugins.
 
+### Maintenance
+
+- Update Gradle and development dependencies
+- Functional tests use the example project.
+- Added more functional tests for all added tasks and to test with lower Gradle versions
+
 ## [0.2.0] - 2025-12-20
 [0.2.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.1.0...v0.2.0
 

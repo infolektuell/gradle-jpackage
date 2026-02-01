@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GradleJpackagePluginFunctionalTest {
     private final File projectDir = new File("../example");
-    private final String gradleVersion = "9.1.0";
+    private final String gradleVersion = "8.5";
 
     @Test
     void nonModularProjectShouldBuild() {
