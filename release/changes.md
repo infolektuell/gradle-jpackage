@@ -1,3 +1,2 @@
-- Adds modular dependencies of non-modular apps to the run task from the Application plugin.
-- Run task becomes compatible with configuration cache.
-- Pass-through CLI options in JpackageTask were replaced with documentation comments.
+- Added a jlink configuration to declare jlink-specific dependencies, e.g., .jmod files that should replace their jar equivalent that is used during development.
+- The plugin is able to detect the main module, so it doesn't need to be set explicitly in the build script. Setting it saves a bit of build time, but it's not necessary.
