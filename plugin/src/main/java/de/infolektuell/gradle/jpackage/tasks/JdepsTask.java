@@ -1,8 +1,10 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.file.*;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
@@ -81,12 +83,22 @@ public abstract class JdepsTask extends JDKToolTask {
 
     @OutputFile
     public abstract RegularFileProperty getDestinationFile();
+    @Internal
+    public Provider<@NonNull String> getResult() {
+        return getDestinationFile().map(f -> {
+            try {
+                final var text = Files.readString(f.getAsFile().toPath());
+                return text.trim();
+            } catch (Exception ignored) {
+                return "ALL_MODULE_PATH";
+            }
+        });
+    }
 
     @TaskAction
     protected void jdeps() {
         final ByteArrayOutputStream s = new ByteArrayOutputStream();
         final ExecResult result = exec("jdeps", spec -> {
-            spec.setIgnoreExitValue(true);
             spec.setStandardOutput(s);
             if (!getClassPath().isEmpty()) spec.args("--class-path", getClassPath().getAsPath());
             if (!getModulePath().isEmpty()) spec.args("--module-path", getModulePath().getAsPath());
@@ -96,17 +108,14 @@ public abstract class JdepsTask extends JDKToolTask {
             if (getPrintModuleDeps().getOrElse(false)) spec.args("--print-module-deps");
             if (getIgnoreMissingDeps().getOrElse(false)) spec.args("--ignore-missing-deps");
             if (getMultiRelease().isPresent()) spec.args("--multi-release", getMultiRelease().get().asInt());
-            if (getModule().isPresent()) spec.args("--module", getModule().get());
             getArgumentProviders().get().forEach(p -> spec.getArgumentProviders().add(p));
-            getSource().forEach(spec::args);
+            if (getModule().isPresent()) spec.args("--module", getModule().get());
+            else getSource().forEach(spec::args);
         });
         final String output = s.toString();
-        if (result.getExitValue() != 0) {
-            getLogger().error("Jdeps failed: {}", output);
-        } else {
-            getLogger().info("Jdeps found these module dependencies: {}", output);
+        if (result.getExitValue() != 0 || output.startsWith("Error: ")) {
+            throw new GradleException("Failed to run Jdeps: " + output);
         }
-        result.assertNormalExitValue();
         final Path dest = getDestinationFile().get().getAsFile().toPath();
         try {
             Files.writeString(dest, output);
