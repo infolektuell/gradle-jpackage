@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GradleJpackagePluginFunctionalTest {
     private final File projectDir = new File("../example");
@@ -87,18 +87,20 @@ class GradleJpackagePluginFunctionalTest {
     void nonModularAppShouldRun() {
         final var project = "nonmodular";
         var runner = createRunner()
-            .withArguments(project + ":clean", project + ":run", "--stacktrace");
+            .withArguments(project + ":clean", project + ":run", "--info", "--stacktrace");
         var result = runner.build();
         assertTrue(result.getOutput().contains("BUILD SUCCESSFUL"));
+        assertFalse(result.getOutput().contains("--module-path"));
     }
 
     @Test
     void modularAppShouldRun() {
         final var project = "modular";
         var runner = createRunner()
-            .withArguments(project + ":clean", project + ":run", "--stacktrace");
+            .withArguments(project + ":clean", project + ":run", "--info", "--stacktrace");
         var result = runner.build();
         assertTrue(result.getOutput().contains("BUILD SUCCESSFUL"));
+        assertTrue(result.getOutput().contains("--module-path"));
     }
 
     private GradleRunner createRunner() {

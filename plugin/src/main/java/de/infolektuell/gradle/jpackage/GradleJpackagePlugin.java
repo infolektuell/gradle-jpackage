@@ -31,6 +31,7 @@ import org.gradle.jvm.toolchain.JavaToolchainService;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -85,8 +86,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
             });
 
             javaExtension.getSourceSets().named("main").configure(s -> {
-                final Provider<@NonNull String> moduleName = s.getJava().getClassesDirectory().map(dir -> Modules.moduleName(dir.getAsFile()));
-                jpackageExtension.getLauncher().getMainModule().convention(moduleName);
+                final String moduleName = Modules.sourceFileModuleName(project.getLayout().getProjectDirectory().file("src/main/java/module-info.java").getAsFile());
+                if (Objects.nonNull(moduleName)) jpackageExtension.getLauncher().getMainModule().convention(moduleName);
                 final FileCollection modules = s.getRuntimeClasspath().filter(Modules::isModule);
                 final FileCollection nonModules = s.getRuntimeClasspath().minus(modules);
 
@@ -127,7 +128,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
                 project.getPluginManager().withPlugin("application", p -> {
                     final JavaApplication application = project.getExtensions().getByType(JavaApplication.class);
-                    jpackageExtension.getLauncher().getMainModule().convention(application.getMainModule().orElse(moduleName));
+                    if (Objects.nonNull(moduleName)) application.getMainModule().convention(moduleName);
+                    jpackageExtension.getLauncher().getMainModule().convention(application.getMainModule());
                     jpackageExtension.getLauncher().getMainClass().convention(application.getMainClass());
                     jpackageExtension.getMetadata().getName().convention(project.getProviders().provider(application::getApplicationName));
                     jpackageExtension.getLauncher().getJavaOptions().convention(project.getProviders().provider(application::getApplicationDefaultJvmArgs));

@@ -4,13 +4,34 @@ import java.io.File;
 import java.lang.module.ModuleDescriptor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Manifest;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public class Modules {
+    public static String sourceFileModuleName(File file) {
+        final Path filePath = file.toPath();
+        if (!Files.exists(filePath) || Files.isDirectory(filePath) || !file.getName().equals("module-info.java")) return null;
+        try {
+            final List<String> lines = Files.readAllLines(filePath);
+            final Optional<String> moduleLine = lines.stream()
+                .map(String::trim)
+                .filter(l -> l.startsWith("module "))
+                .findFirst();
+            if (moduleLine.isEmpty()) return null;
+            final Pattern modulePattern = Pattern.compile("^module ([a-z.]+)\\s*[{]$");
+            final Matcher matcher = modulePattern.matcher(moduleLine.get());
+            if (matcher.find()) return matcher.group(1);
+            return null;
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
     public static String moduleName(File file) {
         String moduleName = fileModuleName(file);
         if (Objects.isNull(moduleName)) moduleName = directoryModuleName(file);
