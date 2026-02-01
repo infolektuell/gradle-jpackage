@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 [unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.2.0...HEAD
 
+### Added
+
+- A `jlink` configuration to declare jlink-specific dependencies, e.g., .jmod files that should replace their jar equivalent that is used during development.
+- The plugin is able to detect the main module, so it doesn't need to be set explicitly in the build script. Setting it saves a bit of build time, but it's not necessary.
+
+### Fixed
+
+- The plugin doesn't modify any source set classpath, so there should be less interference with other plugins.
+
 ## [0.2.0] - 2025-12-20
 [0.2.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.1.0...v0.2.0
 
