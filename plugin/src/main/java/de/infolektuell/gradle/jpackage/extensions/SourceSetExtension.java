@@ -5,6 +5,7 @@ import org.gradle.api.tasks.Nested;
 
 public abstract class SourceSetExtension {
     public static final String EXTEnSION_NAME = "jpackage";
+
     @Nested
     public abstract PatchModuleProvider getPatchModule();
 }

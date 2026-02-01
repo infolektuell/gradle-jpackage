@@ -27,7 +27,7 @@ java {
 
 application {
     applicationName = "Sample"
-    mainModule = "example.app"
+    // mainModule = "example.app"
     mainClass = "org.example.App"
 }
 

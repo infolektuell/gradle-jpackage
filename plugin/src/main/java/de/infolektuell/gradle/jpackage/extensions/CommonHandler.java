@@ -12,6 +12,7 @@ public abstract class CommonHandler {
      * Additional directories to be added to the app payload
      */
     public abstract ConfigurableFileCollection getContent();
+
     public abstract Property<@NonNull Boolean> getIsCommandLineApplication();
 
     /**

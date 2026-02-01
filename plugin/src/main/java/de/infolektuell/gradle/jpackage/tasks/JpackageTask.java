@@ -60,59 +60,71 @@ public abstract class JpackageTask extends JDKToolTask {
     @Input
     public abstract Property<@NonNull String> getType();
 
-    /** Version of the application and/or package */
+    /**
+     * Version of the application and/or package
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppVersion();
 
-    /** Copyright for the application */
+    /**
+     * Copyright for the application
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getCopyright();
 
-    /** Description of the application */
+    /**
+     * Description of the application
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppDescription();
 
     /**
-     *         Path of the icon of the application package
-     *             (absolute path or relative to the current directory)
+     * Path of the icon of the application package
+     * (absolute path or relative to the current directory)
      */
     @Optional
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getIcon();
 
-    /** Name of the application and/or package */
+    /**
+     * Name of the application and/or package
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppName();
 
     /**
-     *         Path where generated output file is placed
-     *         (absolute path or relative to the current directory)
-     *         Defaults to the current working directory.
+     * Path where generated output file is placed
+     * (absolute path or relative to the current directory)
+     * Defaults to the current working directory.
      */
     @OutputDirectory
     public abstract DirectoryProperty getDest();
 
-    /** Vendor of the application */
+    /**
+     * Vendor of the application
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getVendor();
 
-    /** Enables verbose output */
+    /**
+     * Enables verbose output
+     */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getVerbose();
 
     /**
-     *           Path of the predefined runtime image that will be copied into the application image
-     *           (absolute path or relative to the current directory)
-     *           If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
-     *           --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
-     *           Option is required when creating a runtime package.
+     * Path of the predefined runtime image that will be copied into the application image
+     * (absolute path or relative to the current directory)
+     * If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
+     * --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
+     * Option is required when creating a runtime package.
      */
     @Optional
     @InputDirectory
@@ -122,9 +134,9 @@ public abstract class JpackageTask extends JDKToolTask {
     // Options for creating the application image
 
     /**
-     *           Path of the input directory that contains the files to be packaged
-     *           (absolute path or relative to the current directory)
-     *           All files in the input directory will be packaged into the application image.
+     * Path of the input directory that contains the files to be packaged
+     * (absolute path or relative to the current directory)
+     * All files in the input directory will be packaged into the application image.
      */
     @Optional
     @InputDirectory
@@ -138,19 +150,21 @@ public abstract class JpackageTask extends JDKToolTask {
     // Options for creating the application launcher(s):
 
     @Input
-    public NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers() { return additionalLaunchers; }
+    public NamedDomainObjectSet<@NonNull Launcher> getAdditionalLaunchers() {
+        return additionalLaunchers;
+    }
 
     /**
-     *           Command line arguments to pass to the main class if no command line arguments are given to the launcher
-     *           This option can be used multiple times.
+     * Command line arguments to pass to the main class if no command line arguments are given to the launcher
+     * This option can be used multiple times.
      */
     @Optional
     @Input
     public abstract ListProperty<@NonNull String> getArguments();
 
     /**
-     *           Options to pass to the Java runtime
-     *           This option can be used multiple times.
+     * Options to pass to the Java runtime
+     * This option can be used multiple times.
      */
     @Optional
     @Input
@@ -162,12 +176,16 @@ public abstract class JpackageTask extends JDKToolTask {
 
     // Options for creating the application package
 
-    /** URL of the application's home page */
+    /**
+     * URL of the application's home page
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getAboutURL();
 
-    /** Location of the predefined application image that is used to build an installable package or to sign the predefined application image */
+    /**
+     * Location of the predefined application image that is used to build an installable package or to sign the predefined application image
+     */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -185,8 +203,8 @@ public abstract class JpackageTask extends JDKToolTask {
     public abstract DirectoryProperty getInstallDir();
 
     /**
-     *           Path to the license file
-     *           (absolute path or relative to the current directory)
+     * Path to the license file
+     * (absolute path or relative to the current directory)
      */
     @Optional
     @InputFile
@@ -194,16 +212,18 @@ public abstract class JpackageTask extends JDKToolTask {
     public abstract RegularFileProperty getLicenseFile();
 
     /**
-     *           Path to override jpackage resources
-     *           Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
-     *           (absolute path or relative to the current directory)
+     * Path to override jpackage resources
+     * Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
+     * (absolute path or relative to the current directory)
      */
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getResourceDir();
 
-    /** Request to create an installer that will register the main application launcher as a background service-type application. */
+    /**
+     * Request to create an installer that will register the main application launcher as a background service-type application.
+     */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getLauncherAsService();

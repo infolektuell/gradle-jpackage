@@ -1,7 +1,8 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.file.*;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -50,19 +51,23 @@ public abstract class JdepsTask extends JDKToolTask {
     @InputFiles
     public abstract ConfigurableFileCollection getUpgradeModulePath();
 
-    /** Specify the root module for analysis */
+    /**
+     * Specify the root module for analysis
+     */
     @Optional
     @Input
     public abstract Property<@NonNull String> getModule();
 
-    /** Recursively traverse all run-time dependencies. */
+    /**
+     * Recursively traverse all run-time dependencies.
+     */
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getRecursive();
 
     /**
-     *         Same as --list-reduced-deps with printing,   a comma-separated list of module dependencies.
-     *         This output can be used by jlink --add-modules in order to create a custom image containing those modules and their transitive dependencies.
+     * Same as --list-reduced-deps with printing,   a comma-separated list of module dependencies.
+     * This output can be used by jlink --add-modules in order to create a custom image containing those modules and their transitive dependencies.
      */
     @Optional
     @Input
@@ -83,6 +88,7 @@ public abstract class JdepsTask extends JDKToolTask {
 
     @OutputFile
     public abstract RegularFileProperty getDestinationFile();
+
     @Internal
     public Provider<@NonNull String> getResult() {
         return getDestinationFile().map(f -> {

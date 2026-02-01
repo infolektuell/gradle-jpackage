@@ -74,7 +74,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         project.getPluginManager().withPlugin("java", javaPlugin -> {
             final JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
             final Provider<@NonNull JavaInstallationMetadata> installationMetadata = getJavaToolchainService().launcherFor(javaExtension.getToolchain())
-                .orElse(getJavaToolchainService().launcherFor(spec -> {}))
+                .orElse(getJavaToolchainService().launcherFor(spec -> {
+                }))
                 .map(JavaLauncher::getMetadata);
 
             javaExtension.getSourceSets().configureEach(s -> {

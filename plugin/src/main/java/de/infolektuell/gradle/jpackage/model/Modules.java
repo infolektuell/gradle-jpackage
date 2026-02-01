@@ -33,7 +33,7 @@ public class Modules {
             if (zip.stream().anyMatch(e -> e.getName().endsWith("module-info.class"))) return true;
             final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
             if (Objects.isNull(manifestFile)) return false;
-            try(var input = zip.getInputStream(manifestFile)) {
+            try (var input = zip.getInputStream(manifestFile)) {
                 var manifest = new Manifest();
                 manifest.read(input);
                 return Objects.nonNull(manifest.getMainAttributes().getValue("Automatic-Module-Name"));
@@ -79,7 +79,7 @@ public class Modules {
             }
             final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
             if (Objects.isNull(manifestFile)) return null;
-            try(var input = zip.getInputStream(manifestFile)) {
+            try (var input = zip.getInputStream(manifestFile)) {
                 var manifest = new Manifest();
                 manifest.read(input);
                 return manifest.getMainAttributes().getValue("Automatic-Module-Name");
