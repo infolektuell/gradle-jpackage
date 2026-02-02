@@ -40,9 +40,11 @@ public abstract class JpackageTask extends JDKToolTask {
     @Input
     public abstract Property<@NonNull String> getMainModule();
 
+    @Optional
     @Input
     public abstract Property<@NonNull String> getMainClass();
 
+    @Optional
     @InputFile
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getMainJar();
@@ -251,11 +253,13 @@ public abstract class JpackageTask extends JDKToolTask {
             getAdditionalLaunchers().forEach(launcher -> spec.args("--add-launcher", String.join("=", launcher.getName(), launcher.getFile().get().getAsFile().getAbsolutePath())));
             if (getArguments().isPresent()) getArguments().get().forEach(a -> spec.args("--arguments", a));
             if (getJavaOptions().isPresent()) getJavaOptions().get().forEach(a -> spec.args("--java-options", a));
-            if (getMainModule().isPresent()) {
-                spec.args("--module", String.join("/", getMainModule().get(), getMainClass().get()));
-            } else {
-                spec.args("--main-class", getMainClass().get());
-                spec.args("--main-jar", getMainJar().get().getAsFile().getName());
+            if (getMainClass().isPresent()) {
+                if (getMainModule().isPresent()) {
+                    spec.args("--module", String.join("/", getMainModule().get(), getMainClass().get()));
+                } else if (getMainJar().isPresent()) {
+                    spec.args("--main-class", getMainClass().get());
+                    spec.args("--main-jar", getMainJar().get().getAsFile().getName());
+                }
             }
 
             if (getApplicationImage().isPresent()) spec.args("--app-image", getApplicationImage().get());
