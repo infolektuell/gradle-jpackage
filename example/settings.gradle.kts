@@ -5,5 +5,6 @@ plugins {
 
 rootProject.name = "example"
 include("modular")
+include("modular-kotlin")
 include("nonmodular")
 includeBuild("../")
