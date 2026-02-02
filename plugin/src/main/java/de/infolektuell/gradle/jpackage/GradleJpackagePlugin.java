@@ -82,12 +82,6 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                 }))
                 .map(JavaLauncher::getMetadata);
 
-            javaExtension.getSourceSets().configureEach(s -> {
-                final SourceSetExtension sourceSetExtension = project.getObjects().newInstance(SourceSetExtension.class);
-                s.getExtensions().add(SourceSetExtension.EXTEnSION_NAME, sourceSetExtension);
-                project.getTasks().named(s.getCompileTaskName("Java"), JavaCompile.class, task -> task.getOptions().getCompilerArgumentProviders().add(sourceSetExtension.getPatchModule()));
-            });
-
             javaExtension.getSourceSets().named("main").configure(s -> {
                 final String moduleName = Modules.sourceFileModuleName(project.getLayout().getProjectDirectory().file("src/main/java/module-info.java").getAsFile());
                 if (Objects.nonNull(moduleName)) jpackageExtension.getLauncher().getMainModule().convention(moduleName);
