@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 [unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.3.0...HEAD
 
+### Fixed
+
+- Prevents main class not found in joined compilation by depending on the main jar file and not on classes.
+
 ## [0.3.0] - 2026-02-01
 [0.3.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.2.0...v0.3.0
 

@@ -18,6 +18,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.file.RegularFile;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
@@ -28,9 +29,11 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
+import org.jetbrains.annotations.NotNull;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
+import java.io.File;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,6 +94,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                 final FileCollection modules = s.getRuntimeClasspath().filter(Modules::isModule);
                 final FileCollection nonModules = s.getRuntimeClasspath().minus(modules);
 
+                final Provider<@NotNull RegularFile> mainJar = project.getTasks().named(s.getJarTaskName(), Jar.class).flatMap(AbstractArchiveTask::getArchiveFile);
                 final TaskProvider<@NonNull JdepsTask> jdepsTask = project.getTasks().register(s.getTaskName("find", "moduleDeps"), JdepsTask.class, task -> {
                     task.setGroup("application");
                     task.setDescription("Analyzes the source set for required modules");
@@ -98,7 +102,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.getClassPath().from(nonModules);
                     task.getModulePath().from(modules);
                     task.getModule().convention(jpackageExtension.getLauncher().getMainModule());
-                    task.getSource().from(s.getJava().getClassesDirectory());
+                    task.getSource().from(mainJar);
                     task.getRecursive().convention(true);
                     task.getPrintModuleDeps().convention(true);
                     task.getIgnoreMissingDeps().convention(true);
@@ -110,14 +114,14 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.setGroup("application");
                     task.setDescription("Run Jlink to generate a customized runtime image");
                     task.getMetadata().convention(installationMetadata);
-                    final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().getElements().zip(jlinkElementsConfig.get().getElements(), (elements, jmods) -> {
+                    final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().filter(File::isFile).getElements().zip(jlinkElementsConfig.get().getElements(), (elements, jmods) -> {
                         if (jmods.isEmpty()) return elements;
                         final Set<String> jmodNames = jmods.stream().map(f -> Modules.moduleName(f.getAsFile())).collect(Collectors.toSet());
                         return elements.stream()
                             .filter(e -> !jmodNames.contains(Modules.moduleName(e.getAsFile())))
                             .collect(Collectors.toSet());
                     });
-                    task.getModulePath().from(jlinkElementsConfig.get(), reduced);
+                    task.getModulePath().from(mainJar, jlinkElementsConfig.get(), reduced);
                     task.getAddModules().add(jpackageExtension.getLauncher().getMainModule().orElse(jdepsTask.flatMap(JdepsTask::getResult)));
                     task.getNoHeaderFiles().convention(true);
                     task.getNoManPages().convention(true);
@@ -137,7 +141,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
                     final TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register(s.getTaskName("copy", "jpackageInput"), PrepareInputTask.class, task -> {
                         task.getSource().from(nonModules);
-                        task.getMainJar().convention(project.getTasks().named(s.getJarTaskName(), Jar.class).flatMap(AbstractArchiveTask::getArchiveFile));
+                        task.getMainJar().convention(mainJar);
                         task.getModule().convention(application.getMainModule());
                         task.getDestination().convention(project.getLayout().getBuildDirectory().dir("jpackage/input"));
                     });
@@ -160,7 +164,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                         task.getDest().convention(project.getLayout().getBuildDirectory().dir("jpackage/image"));
                         task.getRuntimeImage().convention(jlinkTask.flatMap(JlinkTask::getOutput));
                         task.getInput().convention(prepareInputTask.flatMap(PrepareInputTask::getDestination));
-                        task.getMainJar().convention(project.getTasks().named(s.getJarTaskName(), Jar.class).flatMap(AbstractArchiveTask::getArchiveFile));
+                        task.getMainJar().convention(mainJar);
                         task.getMainModule().convention(jpackageExtension.getLauncher().getMainModule());
                         task.getMainClass().convention(jpackageExtension.getLauncher().getMainClass());
                         task.getAppContent().from(jpackageExtension.getCommon().getContent());
