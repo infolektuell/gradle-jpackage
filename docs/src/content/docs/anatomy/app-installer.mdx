@@ -1,0 +1,42 @@
+---
+title: The app installer
+sidebar:
+  order: 4
+---
+
+The _app image_ still isn't distribution-ready and needs to be packaged to become easily distributable and downloadable.
+An _app installer_ is a distributable package that contains the app and maybe guides through the installation process.
+Each operating system has its specific app installer formats:
+
+- Windows: self-extracting .exe or .msi installer file
+- macOS: .dmg archive or .pkg installation package
+- Linux: .deb or .rpm package
+
+It is jpackage again that packages an _app image_ into an _app installer_.
+Actually, jpackage can combine all three steps in one single shell command.
+But splitting them into build steps improves caching, avoids work, and the _app image_ can be examined without installation.
+
+The plugin adds an `appInstaller` task that runs jpackage with the app image as an input and puts the resulting installer under `build/jpackage/installer`.
+
+<Tabs syncKey="os">
+<TabItem label="Windows">
+
+```shell title="Creating an app installer"
+gradlew.bat appInstaller
+```
+
+</TabItem>
+<TabItem label="Linux">
+
+```shell title="Creating an app installer"
+./gradlew appInstaller
+```
+
+</TabItem>
+</Tabs>
+
+The _app installer_ step requires native build tools being installed and configured correctly.
+It is more fragile than the _app image_ step and might fail on the first try.
+This is one more reason for splitting up the build process.
+
+The installer can also get some customization options, but most work is done in the app image.

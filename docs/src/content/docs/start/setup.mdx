@@ -1,0 +1,102 @@
+---
+title: Setup Guide
+description: How to add this plugin to a Gradle application project to get app executables and installers
+---
+
+Please make sure your application is a working Gradle project.
+There shouldn't be any compilation errors, the app should build and run.
+
+The minimal setup doesn't need any additional configuration.
+The essentials are inferred from the Java and Application plugin.
+
+### Applying the plugin
+
+In `build.gradle.kts` or `build.gradle` apply the plugin using the `plugins` DSL.
+A minimal build script should contain these critical parts (adjusted according to your app):
+
+<Tabs syncKey="dsl">
+<TabItem label="Kotlin">
+
+```kts ins={4} "applicationName" "mainClass"
+// build.gradle.kts
+plugins {
+    application
+    id("de.infolektuell.jpackage") version "x.y.z"
+}
+
+application {
+  applicationName = "SampleApp"
+  mainClass = "org.example.App"
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy ins={4} "applicationName" "mainClass"
+// build.gradle
+plugins {
+    id application
+    id 'de.infolektuell.jpackage' version 'x.y.z'
+}
+
+application {
+  applicationName = 'SampleApp'
+  mainClass = 'org.example.App'
+}
+```
+
+</TabItem>
+</Tabs>
+
+:::note
+The plugin auto-detects whether the app is modular and reads the main module's name from the `module-info.java` file.
+So the main module doesn't need to but can be explicitly set in the build script.
+:::
+
+#### Creating an executable
+
+To turn your app into a self-contained executable, run this task:
+
+<Tabs syncKey="os">
+<TabItem label="Windows">
+
+```shell title="Creating a self-contained executable"
+gradlew.bat appImage
+```
+
+</TabItem>
+<TabItem label="Linux">
+
+```shell title="Creating a self-contained executable"
+./gradlew appImage
+```
+
+</TabItem>
+</Tabs>
+
+After running successfully, the results can be found in the build directory:
+
+<FileTree>
+
+- app The project directory
+  - build The build directory
+    - ...
+    - **jpackage**
+      - image/ Contains the self-contained executable
+    - ...
+  - build.gradle.kts
+- settings.gradle.kts
+
+</FileTree>
+
+The `build/jpackage/image` directory contains a directory named by the application name.
+This directory contains the executable and required files, it can be copied anywhere and opened.
+Its structure depends on the build OS.
+On macOS, the folder structure follows the mac-specific application format,, its name has an `.app` suffix.
+It is immediately recognized as an application and can be opened like usual macOS apps.
+
+### Going further
+
+Now you should have a minimal working setup.
+The rest of this documentation describes how app customization can be achieved with this plugin.

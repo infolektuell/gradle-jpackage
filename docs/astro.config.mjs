@@ -33,12 +33,16 @@ export default defineConfig({
             },
             sidebar: [
                 {
-                    label: 'Introduction',
-                    autogenerate: { directory: 'introduction' },
+                    label: 'Start',
+                    autogenerate: { directory: 'start' },
                 },
                 {
-                    label: 'Guides',
-                    autogenerate: { directory: 'guides' },
+                    label: 'App and build authoring',
+                    autogenerate: { directory: 'authoring' },
+                },
+                {
+                    label: 'Build Anatomy',
+                    autogenerate: { directory: 'anatomy' },
                 },
                 {
                     label: 'API Docs',

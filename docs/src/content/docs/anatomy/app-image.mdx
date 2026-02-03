@@ -1,0 +1,44 @@
+---
+title: The app image
+sidebar:
+  order: 3
+---
+
+The next step is packaging the application into a self-contained executable.
+This includes:
+
+- The previously generated runtime image
+- App-specific customizations and assets like icons and resources
+- a launcher that runs Java with the correct arguments
+- Non-modular jar files that are runtime dependencies of the app and couldn't be included in the linking step
+
+The [jpackage] tool is responsible for this step.
+It assembles everything into a specific folder structure that  tries to mimic how native apps are structured on the respective operating systems.
+This is called an _app image_, a tool-specific format.
+It has nothing to do with e.g. the Linux App Image format (which would be nice to have).
+
+The plugin adds an `appImage` task that runs the jpackage tool and outputs the app image under `build/jpackage/image`.
+It can directly be executed without having to install it somewhere on the system.
+
+<Tabs syncKey="os">
+<TabItem label="Windows">
+
+```shell title="Creating an app image"
+gradlew.bat appImage
+```
+
+</TabItem>
+<TabItem label="Linux">
+
+```shell title="Creating an app image"
+./gradlew appImage
+```
+
+</TabItem>
+</Tabs>
+
+:::warning
+Jpackage can build apps only for the OS it runs on.
+:::
+
+[jpackage]: https://openjdk.org/jeps/392

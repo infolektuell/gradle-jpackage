@@ -1,0 +1,93 @@
+---
+title: Modularity for optimizations
+sidebar:
+  order: 2
+label: Modules
+---
+
+The official standard JREs are already optimized for production use in terms of running performance, efficiency or disk space.
+But it will probably contain functionalities that your app doesn't need.
+Jlink generates a custom runtime image that contains only what your app needs.
+
+## Modularity for better dependency management
+
+In order to find out what is required, we could analyze the code class per class, but this would be quite inefficient.
+Java 9 introduced the modularity concept as a general language feature.
+It makes dependency analysis much more efficient, because requirements and exports are explicitly described in a module's declaration.
+A Module …
+
+- … has a name.
+- … knows which other modules it requires.
+- … Declares which of its packages can be imported by other modules.
+
+The complete JDK is split into modules, but also an application or a library can (and should) be a module.
+Jlink can assemble a set of any modules into an optimized runtime image.
+This optimization step called _linking_ happens once after compilation and before the app is actually runnable.
+The JDK and JRE is built using Jlink, so the JDK is a specific application of a broader and more general approach.
+
+## Becoming modular
+
+To turn a Java project into a module, it has to contain a file named `module-info.java` in its root directory, next to the top-level packages.
+
+<FileTree>
+
+- src
+  - main
+    - java
+      - org
+        - example
+          - app
+            - App.java
+      - module-info.java
+
+</FileTree>
+
+The `module-info.java` file (the module descriptor) has to be written in a special syntax.
+
+```
+// module-info.java
+module example.app {
+  requires java.base;
+}
+```
+
+If your app is a module, in can even be part of the linking step and included in the resulting runtime image, so it benefits from linking optimizations.
+Becoming modular is highly advisable, but not strictly necessary.
+
+:::note
+An app module doesn't need to export any packages to other modules.
+For a library, being modular means more fine-grained control over what can be imported and what should be visible only by packages from the same module.
+:::
+
+## How to become modular
+
+A module hast to declare its requirements.
+So you have to know the module names of your runtime dependencies.
+Luckily, the JDK offers a tool named jdeps that analyzes the target app or lib for modules to be included in the module descriptor.
+To do its work, it needs the target app or lib, and its runtime dependencies to query their module names.
+
+The plugin adds a `findModuleDeps` task that analyzes the compiled classes in the main source set.
+
+<Tabs syncKey="os">
+<TabItem label="Windows">
+
+```shell title="Analyzing the code for module dependencies"
+gradlew.bat findModuleDeps
+```
+
+</TabItem>
+<TabItem label="Linux">
+
+```shell title="Analyzing the code for module dependencies"
+./gradlew findModuleDeps
+```
+
+</TabItem>
+</Tabs>
+
+It outputs a comma-delimited list of found module names into `build/jdeps/main/jdeps-result.txt`.
+You can inspect this file as a starting point for your module descriptor.
+
+If your app is still non-modular, this task is automatically executed before the runtime image is built.
+It includes all found modules into the runtime image to link as many dependencies as possible.
+If your app is already modular, this step is skipped and your module is used directly with its declared module dependencies.

@@ -1,0 +1,38 @@
+---
+title: The runtime image
+sidebar:
+  order: 1
+---
+
+There was a time when users had to install a Java runtime environment (JRE) before they could open a Java-based application.
+This wasn't only annoying for users but it could lead to version conflicts when another app wasn't compatible with the installed JRe.
+
+The solution: Each app should come with its own individual JRE bundled as part of the app.
+This solves the compatibility conflicts because each app has a compatible JRE.
+Such a bundled JRE is called a _runtime image_.
+Physically seen, it is a folder where the content follows a certain file structure.
+
+The [jlink] tool is responsible for generating runtime images and is included in the JDK since Java 9.
+The plugin adds a `generateRuntimeImage` task to the build that produces a runtime image to be bundled with the application.
+
+<Tabs syncKey="os">
+<TabItem label="Windows">
+
+```shell title="Creating a new project"
+gradlew.bat generateRuntimeImage
+```
+
+</TabItem>
+<TabItem label="Linux">
+
+```shell title="Creating a new project"
+./gradlew generateRuntimeImage
+```
+
+</TabItem>
+</Tabs>
+
+The runtime image is stored under `build/jlink/runtime`.
+It is an input for the next step.
+
+[jlink]: https://openjdk.org/jeps/282
