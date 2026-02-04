@@ -1,2 +1,2 @@
-- Added a jlink configuration to declare jlink-specific dependencies, e.g., .jmod files that should replace their jar equivalent that is used during development.
-- The plugin is able to detect the main module, so it doesn't need to be set explicitly in the build script. Setting it saves a bit of build time, but it's not necessary.
+- Fix: Prevents main class not found in joined compilation by depending on the main jar file and not on classes.
+- Removed source set extension for module patching, because solving compilation problems is out of scope.

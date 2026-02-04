@@ -6,7 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-[unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.4.0...HEAD
+
+## [0.4.0] - 2026-02-04
+[0.4.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.3.0...v0.4.0
 
 ### Fixed
 
@@ -14,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Removed
 
-- Source set extension for module patching, because solving compilation problems doesn't belong to the scope of this plugin.
+- Source set extension for module patching, because solving compilation problems is out of scope.
 
 ## [0.3.0] - 2026-02-01
 [0.3.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.2.0...v0.3.0
