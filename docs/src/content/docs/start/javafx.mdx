@@ -1,0 +1,189 @@
+---
+title: JavaFX Integration
+sidebar:
+  order: 4
+---
+
+JavaFX, the cross-platform UI toolkit for Java-based applications, can easily integrate with the Jpackage plugin.
+
+## Prerequisites
+
+You should already have a JavaFX application as a Gradle build.
+This guide describes the recommended setup and changes to apply in conjunction with the Jpackage plugin.
+
+## Plugins
+
+Let's begin with adding the necessary plugins to the build.
+We'll avoid relying on unnecessary dependencies and skip the JavaFX plugin.
+Everything it does can be achieved with a little bit of build logic.
+
+```kts title="Adding the necessary plugins" del={4}
+// build.gradle.kts
+plugins {
+    application
+    id("org.openjfx.javafxplugin") version "0.1.0"
+    id("de.infolektuell.jpackage") version "x.y.z"
+}
+```
+
+:::caution
+Using the JavaFX plugin together with the Jpackage plugin is possible but discouraged.
+Its maintenance is neglected, and it contains too much magic for such a little convenience.
+:::
+
+## JavaFX version and platform classifier
+
+JavaFX has platform-specific native components, so we have to add the correct dependencies for the current platform.
+It consists of multiple modules that can be configured as a list of strings in the JavaFX plugin's DSL extension.
+But we manually add the dependencies, so the version and platform have to be defined as variables in the build script.
+
+:::note
+The version and module values are examples, please replace them with your project's values.
+:::
+
+First, add the JavaFX version as a Gradle property.
+
+```properties title="Defining the JavaFX version"
+// gradle.properties
+org.openjfx.javafx.version=25.0.2
+```
+
+We can benefit from Gradle's configuration-cache-friendly [value sources] and load the version as an external source provider.
+
+```kts title="Loading the JavaFX version"
+// build.gradle.kts
+val javafxVersion = providers.gradleProperty("org.openjfx.javafx.version")
+```
+
+[value sources]: https://docs.gradle.org/current/kotlin-dsl/gradle/org.gradle.api.provider/-value-source/index.html
+
+To detect the current platform and use the right classifier for the Maven dependencies, we define a little function that also returns a value source provider.
+Such helper functions could go to the bottom of the build script file, if they are too distracting.
+
+```kts title="Adding a helper function to detect the JavaFX maven classifier"
+// build.gradle.kts
+fun findMavenPlatformClassifier(): Provider<String> {
+    // Avoid internal API and use JVM system properties
+    return providers.systemProperty("os.name").zip(providers.systemProperty("os.arch")) { os, arch ->
+        val osPart = if (os.contains("windows", true)) "windows"
+        else if (os.contains("mac", true)) "mac"
+        else "linux"
+        if (arch.contains("aarch64", true)) "$osPart-aarch64"
+        else osPart
+    }
+}
+```
+
+```kts title="Loading the classifier" ins={3}
+// build.gradle.kts
+val javafxVersion = providers.gradleProperty("org.openjfx.javafx.version")
+val javafxClassifier = findMavenPlatformClassifier().get()
+```
+
+Last, the required modules have to be added:
+
+```kts title="Setting the JavaFX modules" ins={4}
+// build.gradle.kts
+val javafxVersion = providers.gradleProperty("org.openjfx.javafx.version")
+val javafxClassifier = findMavenPlatformClassifier()
+val javafxModules = setOf("base", "graphics", "controls", "fxml")
+```
+
+## Adding dependencies
+
+Now, everything is ready for dependencies.
+
+```kts title="Adding the JavaFX dependencies" ins={6-8}
+// build.gradle.kts
+val javafxVersion = providers.gradleProperty("org.openjfx.javafx.version")
+val javafxClassifier = findMavenPlatformClassifier()
+val javafxModules = setOf("base", "graphics", "controls", "fxml")
+
+dependencies {
+    javafxModules.forEach { implementation("org.openjfx:javafx-${it}:${javafxVersion.get()}:${javafxClassifier.get()}") }
+}
+```
+
+## Testing
+
+Now build and run to check if everything works correctly:
+
+```shell title="Testing the build"
+./gradlew build
+./gradlew run
+```
+
+## Bonus: Local installation
+
+Sometimes, e.g., for debugging, it can be appropriate to use a local JavaFX installation as dependency.
+This is something depending on the local environment, so the local installation path shouldn't be persisted in the build script.
+To achieve this, we  can set the path in the user-level `gradle.properties` file that is mostly located in the `.gradle` directory in the user's home directory.
+
+:::note
+The JavaFX plugin uses a DSL property to be set in the build script which is a bad idea.
+:::
+
+First, create a user-level properties file and add a property with an installation path:
+See the [gradle.properties docs] for more information.
+
+[gradle.properties docs]: https://docs.gradle.org/current/userguide/build_environment.html#the_gradle_properties_file
+
+```properties title="Defining the local JavaFX installation path"
+// ~/.gradle/gradle.properties
+org.openjfx.javafx.local_installation=~/development/javafx
+```
+
+Load the path as a value provider as seen above and convert it to a directory provider:
+
+```kts title="Loading the JavaFX installation path" ins={2-3}
+// build.gradle.kts
+val javafxInstallation = providers.gradleProperty("org.openjfx.javafx.local_installation")
+    .map { layout.projectDirectory.dir(it) }
+```
+
+Now we have to conditionally decide whether the local or Maven dependencies are added.
+So the dependencies block needs some decision logic.
+If the property is set, Gradle tries to load JavaFX from there and fails, if the path doesn't exist or contains no jar files.
+Otherwise, it uses the Maven dependencies.
+
+```kts title="conditionally loading local or Maven dependencies"
+// build.gradle.kts
+if (javafxInstallation.isPresent) {
+    if (!javafxInstallation.get().asFile.exists()) throw GradleException("The local JavaFX installation directory ${javafxInstallation.get()} does not exist.")
+    val javafxJars = fileTree(javafxInstallation).matching { include("*.jar") }
+    if (javafxJars.isEmpty) throw GradleException("The local JavaFX installation directory ${javafxInstallation.get()} doesn't contain any JAR files.")
+    repositories {
+        flatDir {
+            dirs(javafxInstallation.get())
+        }
+    }
+    dependencies {
+        implementation(javafxJars)
+    }
+} else {
+    dependencies {
+        javafxModules.forEach { implementation("org.openjfx:javafx-${it}:${javafxVersion.get()}:${javafxClassifier.get()}") }
+    }
+}
+```
+
+To return to the Maven dependencies, you have to remove or comment out the local installation property.
+
+```properties title="disabling the local JavaFX installation path"
+// ~/.gradle/gradle.properties
+// org.openjfx.javafx.local_installation=~/development/javafx
+```
+
+## Work done
+
+Now JavaFX should be available in your app.
+Try and test again:
+
+```shell title="Testing the build"
+# Development
+./gradlew build
+./gradlew run
+
+# packaged app
+./gradlew appImage
+```

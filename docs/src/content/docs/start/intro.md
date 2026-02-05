@@ -3,6 +3,7 @@ title: About this Plugin
 description: The goals, features, and requirements of the Gradle Jpackage plugin
 sidebar:
   label: About
+  order: 1
 ---
 
 This Gradle plugin turns Java applications into self-contained executables and installers for distribution.
