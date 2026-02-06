@@ -1,2 +1,1 @@
-- Fix: Prevents main class not found in joined compilation by depending on the main jar file and not on classes.
-- Removed source set extension for module patching, because solving compilation problems is out of scope.
+- Fix: Jlink doesn't fail anymore with automatic modules as dependencies.

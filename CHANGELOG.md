@@ -6,11 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-[unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.4.0...HEAD
+[unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.4.1...HEAD
+
+## [0.4.1] - 2026-02-06
+[0.4.1]: https://github.com/infolektuell/gradle-jpackage/compare/v0.4.0...v0.4.1
 
 ### Fixed
 
-- Jlink doesn't fail anymore with automatic modules. these are not considered anymore by jdeps or added to the runtime image.
+- Jlink doesn't fail anymore with automatic modules as dependencies.
 
 ## [0.4.0] - 2026-02-04
 [0.4.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.3.0...v0.4.0
