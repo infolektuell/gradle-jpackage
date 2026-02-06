@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -32,6 +31,7 @@ public class Modules {
             return null;
         }
     }
+
     public static String moduleName(File file) {
         String moduleName = fileModuleName(file);
         if (Objects.isNull(moduleName)) moduleName = directoryModuleName(file);
@@ -51,14 +51,7 @@ public class Modules {
     private static boolean isJarModule(File file) {
         if (!file.isFile() || !file.exists() || !file.getName().endsWith(".jar")) return false;
         try (ZipFile zip = new ZipFile(file)) {
-            if (zip.stream().anyMatch(e -> e.getName().endsWith("module-info.class"))) return true;
-            final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
-            if (Objects.isNull(manifestFile)) return false;
-            try (var input = zip.getInputStream(manifestFile)) {
-                var manifest = new Manifest();
-                manifest.read(input);
-                return Objects.nonNull(manifest.getMainAttributes().getValue("Automatic-Module-Name"));
-            }
+            return zip.stream().anyMatch(e -> e.getName().endsWith("module-info.class"));
         } catch (Exception ignored) {
             return false;
         }
@@ -98,13 +91,7 @@ public class Modules {
                     return module.name();
                 }
             }
-            final ZipEntry manifestFile = zip.getEntry("META-INF/MANIFEST.MF");
-            if (Objects.isNull(manifestFile)) return null;
-            try (var input = zip.getInputStream(manifestFile)) {
-                var manifest = new Manifest();
-                manifest.read(input);
-                return manifest.getMainAttributes().getValue("Automatic-Module-Name");
-            }
+            return null;
         } catch (Exception ignored) {
             return null;
         }

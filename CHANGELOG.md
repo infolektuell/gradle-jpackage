@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Unreleased
 [unreleased]: https://github.com/infolektuell/gradle-jpackage/compare/v0.4.0...HEAD
 
+### Fixed
+
+- Jlink doesn't fail anymore with automatic modules. these are not considered anymore by jdeps or added to the runtime image.
+
 ## [0.4.0] - 2026-02-04
 [0.4.0]: https://github.com/infolektuell/gradle-jpackage/compare/v0.3.0...v0.4.0
 
