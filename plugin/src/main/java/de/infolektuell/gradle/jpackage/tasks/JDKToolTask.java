@@ -5,6 +5,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Nested;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.process.ExecOperations;
@@ -14,6 +15,7 @@ import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
 
+@CacheableTask
 public abstract class JDKToolTask extends DefaultTask {
     @Inject
     protected abstract ExecOperations getExecOperations();

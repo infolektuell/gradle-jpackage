@@ -18,6 +18,7 @@ public abstract class PrepareInputTask extends DefaultTask {
     protected abstract FileSystemOperations getFileSystemOperations();
 
     @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
     public abstract RegularFileProperty getMainJar();
 
     @InputFiles

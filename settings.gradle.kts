@@ -6,3 +6,4 @@ plugins {
 rootProject.name = "gradle-jpackage"
 include("plugin")
 project(":plugin").name = "gradle-plugin-jpackage"
+enableFeaturePreview("STABLE_CONFIGURATION_CACHE")
