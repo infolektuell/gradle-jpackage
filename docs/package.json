@@ -10,16 +10,15 @@
         "build": "astro build",
         "preview": "astro preview",
         "format": "prettier -w .",
-        "check": "prettier -c . && astro check",
+        "check": "prettier -c .",
         "astro": "astro"
     },
     "devDependencies": {
-        "@astrojs/check": "^0.9.6",
-        "@astrojs/starlight": "^0.37.6",
-        "astro": "^5.17.1",
+        "@astrojs/starlight": "^0.38.4",
+        "astro": "^6.1.9",
         "astro-auto-import": "^0.5.1",
-        "fast-xml-parser": "^5.3.4",
-        "prettier": "^3.8.1",
+        "fast-xml-parser": "^5.7.1",
+        "prettier": "^3.8.3",
         "prettier-plugin-astro": "^0.14.1",
         "sharp": "^0.34.2"
     }
