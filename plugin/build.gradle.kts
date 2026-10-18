@@ -38,10 +38,6 @@ java {
     }
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     compileOnly("org.jspecify:jspecify:1.0.0")
     // Use JUnit Jupiter for testing.
