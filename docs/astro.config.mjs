@@ -34,15 +34,27 @@ export default defineConfig({
             sidebar: [
                 {
                     label: 'Start',
-                    autogenerate: { directory: 'start' },
+                    items: [
+                        {
+                            autogenerate: { directory: 'start' },
+                        },
+                    ],
                 },
                 {
                     label: 'App and build authoring',
-                    autogenerate: { directory: 'authoring' },
+                    items: [
+                        {
+                            autogenerate: { directory: 'authoring' },
+                        },
+                    ],
                 },
                 {
                     label: 'Build Anatomy',
-                    autogenerate: { directory: 'anatomy' },
+                    items: [
+                        {
+                            autogenerate: { directory: 'anatomy' },
+                        },
+                    ],
                 },
                 {
                     label: 'API Docs',

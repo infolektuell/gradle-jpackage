@@ -14,12 +14,16 @@
         "astro": "astro"
     },
     "devDependencies": {
-        "@astrojs/starlight": "^0.38.4",
-        "astro": "^6.1.9",
-        "astro-auto-import": "^0.5.1",
-        "fast-xml-parser": "^5.7.1",
-        "prettier": "^3.8.3",
-        "prettier-plugin-astro": "^0.14.1",
-        "sharp": "^0.34.2"
+        "@astrojs/starlight": "^0.42.6",
+        "astro": "^7.4.0",
+        "astro-auto-import": "^0.6.0",
+        "fast-xml-parser": "^5.11.2",
+        "prettier": "^3.9.10",
+        "prettier-plugin-astro": "^1.1.1",
+        "sharp": "^0.35.5"
+    },
+    "overrides": {
+        "postcss-selector-parser": "^7.1.6",
+        "js-yaml": "^4.3.2"
     }
 }
