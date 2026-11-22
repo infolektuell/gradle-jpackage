@@ -1,6 +1,8 @@
+import org.gradle.plugin.compatibility.compatibility
+
 plugins {
     signing
-    id("com.gradle.plugin-publish") version "2.0.0"
+    id("com.gradle.plugin-publish") version "2.2.1"
 }
 
 group = "de.infolektuell"
@@ -19,23 +21,38 @@ gradlePlugin {
         description = releaseNotes.get()
         tags = listOf("jpackage", "jlink", "application", "installer", "native", "jdeps")
         implementationClass = "de.infolektuell.gradle.jpackage.GradleJpackagePlugin"
+        compatibility {
+            features {
+                configurationCache = true
+            }
+        }
     }
 }
 
 signing {
     // Get credentials from env variables for better CI compatibility
-    val signingKeyId: String? by project
-    val signingKey: String? by project
-    val signingPassword: String? by project
+    val signingKeyId: String? = providers.gradleProperty("signingKeyId").orNull
+    val signingKey = providers.gradleProperty("signingKey").orNull
+    val signingPassword = providers.gradleProperty("signingPassword").orNull
     useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
 }
 
+tasks.withType<Sign>().configureEach {
+    val isReleaseVersion = releaseVersion.map { !it.endsWith("-SNAPSHOT") }
+    onlyIf { isReleaseVersion.get() }
+}
+
 java {
-    withSourcesJar()
-    withJavadocJar()
     toolchain {
         languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+tasks.withType(Javadoc::class).named("javadoc") {
+    javadocTool = javaToolchains.javadocToolFor { languageVersion = JavaLanguageVersion.of(25) }
+    options.destinationDirectory = rootProject.layout.projectDirectory.dir("docs/public/reference").asFile
+    options.quiet()
+    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:all,-missing", "-quiet")
 }
 
 dependencies {
@@ -54,7 +71,8 @@ configurations["functionalTestImplementation"].extendsFrom(configurations["testI
 configurations["functionalTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
 
 // Add a task to run the functional tests
-val functionalTest by tasks.registering(Test::class) {
+val functionalTest = tasks.register("functionalTest", Test::class) {
+    description = "Runs the functional tests for the plugin"
     testClassesDirs = functionalTestSourceSet.output.classesDirs
     classpath = functionalTestSourceSet.runtimeClasspath
     useJUnitPlatform()
@@ -65,11 +83,6 @@ gradlePlugin.testSourceSets.add(functionalTestSourceSet)
 tasks.named<Task>("check") {
     // Run the functional tests as part of `check`
     dependsOn(functionalTest)
-}
-
-tasks.withType<Javadoc>().configureEach {
-    (options as StandardJavadocDocletOptions).addStringOption("Xdoclint:all,-missing", "-quiet")
-    destinationDir = rootProject.layout.projectDirectory.dir("docs/public/reference").asFile
 }
 
 tasks.named<Test>("test") {
