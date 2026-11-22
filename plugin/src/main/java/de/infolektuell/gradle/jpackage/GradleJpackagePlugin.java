@@ -102,10 +102,10 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     task.getDestinationFile().convention(project.getLayout().getBuildDirectory().file("jdeps/" + s.getName() + "/jdeps-result.txt"));
                 });
 
-                final TaskProvider<@NonNull JlinkTask> jlinkTask = project.getTasks().register(s.getTaskName("generate", "runtimeImage"), JlinkTask.class, task -> {
+                final var jlinkTask = project.getTasks().register(s.getTaskName("generate", "runtimeImage"), JlinkTask.class, task -> {
                     task.setGroup("application");
                     task.setDescription("Run Jlink to generate a customized runtime image");
-                    task.getMetadata().convention(installationMetadata);
+                    task.getJlinkTool().convention(toolFactory.getJlinkToolFor(javaExtension.getToolchain()));
                     final Provider<@NonNull Set<FileSystemLocation>> reduced = s.getRuntimeClasspath().filter(File::isFile).getElements().zip(jlinkElementsConfig.get().getElements(), (elements, jmods) -> {
                         if (jmods.isEmpty()) return elements;
                         final Set<String> jmodNames = jmods.stream().map(f -> Modules.moduleName(f.getAsFile())).collect(Collectors.toSet());

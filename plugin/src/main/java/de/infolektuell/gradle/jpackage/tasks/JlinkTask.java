@@ -1,11 +1,16 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
+import de.infolektuell.gradle.jpackage.toolchain.JlinkTool;
+import java.io.ByteArrayOutputStream;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.*;
+import org.gradle.process.CommandLineArgumentProvider;
+import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
@@ -13,15 +18,15 @@ import java.io.Serial;
 import java.io.Serializable;
 
 @CacheableTask
-public abstract class JlinkTask extends JDKToolTask {
+public abstract class JlinkTask extends DefaultTask {
     public enum Endian implements Serializable {
         BIG, LITTLE;
         @Serial
         private static final long serialVersionUID = 1L;
     }
 
-    @Inject
-    protected abstract FileSystemOperations getFileSystemOperations();
+    @Nested
+    public abstract Property<JlinkTool> getJlinkTool();
 
     @Input
     public abstract ListProperty<@NonNull String> getAddModules();
@@ -74,13 +79,21 @@ public abstract class JlinkTask extends JDKToolTask {
     @Input
     public abstract Property<@NonNull Boolean> getStripNativeCommands();
 
+    @Input
+    public abstract ListProperty<String> getArguments();
+
+    @Nested
+    public abstract ListProperty<CommandLineArgumentProvider> getArgumentProviders();
+
     @OutputDirectory
     public abstract DirectoryProperty getOutput();
 
     @TaskAction
     protected void run() {
         getFileSystemOperations().delete(spec -> spec.delete(getOutput()));
-        exec("jlink", spec -> {
+        final var out = new ByteArrayOutputStream();
+        final var result = getExecOperations().exec(spec -> {
+            spec.executable(getJlinkTool().get().getExecutablePath());
             spec.args("--add-modules", String.join(",", getAddModules().get()));
             if (getBindServices().getOrElse(false)) spec.args("--bind-services");
             if (getCompress().isPresent()) {
@@ -98,7 +111,21 @@ public abstract class JlinkTask extends JDKToolTask {
             if (getStripDebug().getOrElse(false)) spec.args("--strip-debug");
             if (getStripNativeCommands().getOrElse(false)) spec.args("--strip-native-commands");
             spec.args("--output", getOutput().get());
+            if (getArguments().isPresent()) spec.args(getArguments().get());
+            spec.getArgumentProviders().addAll(getArgumentProviders().get());
+
             if (getLogger().isInfoEnabled()) spec.args("--verbose");
+            spec.setIgnoreExitValue(true);
+            spec.setStandardOutput(out);
         });
+        if (result.getExitValue() != 0) {
+            throw new RuntimeException(out.toString().trim());
+        }
     }
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 }
