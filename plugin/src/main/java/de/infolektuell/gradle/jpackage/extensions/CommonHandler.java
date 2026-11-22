@@ -20,7 +20,7 @@ public abstract class CommonHandler {
      */
     public abstract SetProperty<@NonNull RegularFile> getFileAssociations();
 
-    public abstract DirectoryProperty getInstallDir();
+    public abstract Property<String> getInstallDir();
 
     public abstract DirectoryProperty getResourceDir();
 

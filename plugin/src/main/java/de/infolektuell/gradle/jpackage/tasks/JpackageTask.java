@@ -1,6 +1,9 @@
 package de.infolektuell.gradle.jpackage.tasks;
 
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
+import de.infolektuell.gradle.jpackage.toolchain.JpackageTool;
+import java.io.ByteArrayOutputStream;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.file.*;
 import org.gradle.api.model.ObjectFactory;
@@ -9,13 +12,14 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 
 import javax.inject.Inject;
 import java.util.regex.Pattern;
 
 @CacheableTask
-public abstract class JpackageTask extends JDKToolTask {
+public abstract class JpackageTask extends DefaultTask {
     private static final Pattern versionPattern = Pattern.compile("^\\d+([.]\\d+){0,2}$");
 
     private static Boolean isVersion(String version) {
@@ -30,11 +34,8 @@ public abstract class JpackageTask extends JDKToolTask {
         this.additionalLaunchers = getObjects().domainObjectContainer(Launcher.class);
     }
 
-    @Inject
-    protected abstract ObjectFactory getObjects();
-
-    @Inject
-    protected abstract FileSystemOperations getFileSystemOperations();
+    @Nested
+    public abstract Property<JpackageTool> getJpackageTool();
 
     @Optional
     @Input
@@ -46,88 +47,58 @@ public abstract class JpackageTask extends JDKToolTask {
 
     @Optional
     @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getMainJar();
 
     // Generic Options:
-
-    /**
-     * Arg files that contain additional options to be passed to jpackage
-     */
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract ListProperty<@NonNull RegularFile> getArgFiles();
 
     @Optional
     @Input
     public abstract Property<@NonNull String> getType();
 
-    /**
-     * Version of the application and/or package
-     */
+    /// Version of the application and/or package
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppVersion();
 
-    /**
-     * Copyright for the application
-     */
+    /// Copyright for the application
     @Optional
     @Input
     public abstract Property<@NonNull String> getCopyright();
 
-    /**
-     * Description of the application
-     */
+    /// Description of the application
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppDescription();
 
-    /**
-     * Path of the icon of the application package
-     * (absolute path or relative to the current directory)
-     */
+    /// Path of the icon of the application package
+    /// (absolute path or relative to the current directory)
     @Optional
     @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getIcon();
 
-    /**
-     * Name of the application and/or package
-     */
+    /// Name of the application and/or package
     @Optional
     @Input
     public abstract Property<@NonNull String> getAppName();
 
-    /**
-     * Path where generated output file is placed
-     * (absolute path or relative to the current directory)
-     * Defaults to the current working directory.
-     */
+    /// Path where generated output file is placed
+    /// (absolute path or relative to the current directory)
+    /// Defaults to the current working directory.
     @OutputDirectory
     public abstract DirectoryProperty getDest();
 
-    /**
-     * Vendor of the application
-     */
+    /// Vendor of the application
     @Optional
     @Input
     public abstract Property<@NonNull String> getVendor();
 
-    /**
-     * Enables verbose output
-     */
-    @Optional
-    @Input
-    public abstract Property<@NonNull Boolean> getVerbose();
-
-    /**
-     * Path of the predefined runtime image that will be copied into the application image
-     * (absolute path or relative to the current directory)
-     * If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
-     * --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
-     * Option is required when creating a runtime package.
-     */
+    /// Path of the predefined runtime image that will be copied into the application image
+    /// (absolute path or relative to the current directory)
+    /// If --runtime-image is not specified, jpackage will run jlink to create the runtime image using options:
+    /// --strip-debug, --no-header-files, --no-man-pages, and --strip-native-commands.
+    /// Option is required when creating a runtime package.
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -135,11 +106,9 @@ public abstract class JpackageTask extends JDKToolTask {
 
     // Options for creating the application image
 
-    /**
-     * Path of the input directory that contains the files to be packaged
-     * (absolute path or relative to the current directory)
-     * All files in the input directory will be packaged into the application image.
-     */
+    /// Path of the input directory that contains the files to be packaged
+    /// (absolute path or relative to the current directory)
+    /// All files in the input directory will be packaged into the application image.
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -156,18 +125,14 @@ public abstract class JpackageTask extends JDKToolTask {
         return additionalLaunchers;
     }
 
-    /**
-     * Command line arguments to pass to the main class if no command line arguments are given to the launcher
-     * This option can be used multiple times.
-     */
+    /// Command line arguments to pass to the main class if no command line arguments are given to the launcher
+    /// This option can be used multiple times.
     @Optional
     @Input
     public abstract ListProperty<@NonNull String> getArguments();
 
-    /**
-     * Options to pass to the Java runtime
-     * This option can be used multiple times.
-     */
+    /// Options to pass to the Java runtime
+    /// This option can be used multiple times.
     @Optional
     @Input
     public abstract ListProperty<@NonNull String> getJavaOptions();
@@ -178,16 +143,12 @@ public abstract class JpackageTask extends JDKToolTask {
 
     // Options for creating the application package
 
-    /**
-     * URL of the application's home page
-     */
+    /// URL of the application's home page
     @Optional
     @Input
     public abstract Property<@NonNull String> getAboutURL();
 
-    /**
-     * Location of the predefined application image that is used to build an installable package or to sign the predefined application image
-     */
+    /// Location of the predefined application image that is used to build an installable package or to sign the predefined application image
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -195,37 +156,30 @@ public abstract class JpackageTask extends JDKToolTask {
 
     @Optional
     @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     public abstract SetProperty<@NonNull RegularFile> getFileAssociations();
 
     @Option(option = "install-dir", description = "Absolute path of the installation directory of the application")
     @Optional
-    @InputDirectory
-    @PathSensitive(PathSensitivity.RELATIVE)
-    public abstract DirectoryProperty getInstallDir();
+    @Input
+    public abstract Property<String> getInstallDir();
 
-    /**
-     * Path to the license file
-     * (absolute path or relative to the current directory)
-     */
+    /// Path to the license file
+    /// (absolute path or relative to the current directory)
     @Optional
     @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getLicenseFile();
 
-    /**
-     * Path to override jpackage resources
-     * Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
-     * (absolute path or relative to the current directory)
-     */
+    /// Path to override jpackage resources
+    /// Icons, template files, and other resources of jpackage can be over-ridden by adding replacement resources to this directory.
+    /// (absolute path or relative to the current directory)
     @Optional
     @InputDirectory
     @PathSensitive(PathSensitivity.RELATIVE)
     public abstract DirectoryProperty getResourceDir();
 
-    /**
-     * Request to create an installer that will register the main application launcher as a background service-type application.
-     */
+    /// Request to create an installer that will register the main application launcher as a background service-type application.
     @Optional
     @Input
     public abstract Property<@NonNull Boolean> getLauncherAsService();
@@ -234,8 +188,10 @@ public abstract class JpackageTask extends JDKToolTask {
     protected void jpackage() {
         getFileSystemOperations().delete(spec -> spec.delete(getDest()));
 
-        exec("jpackage", spec -> {
-            getArgFiles().get().forEach(f -> spec.args("@" + f.getAsFile().getAbsolutePath()));
+        final var out = new ByteArrayOutputStream();
+        final var err = new ByteArrayOutputStream();
+        final var result = getExecOperations().exec(spec -> {
+            spec.executable(getJpackageTool().get().getExecutablePath());
             if (getType().isPresent()) spec.args("--type", getType().get());
             if (getAppVersion().isPresent() && isVersion(getAppVersion().get()))
                 spec.args("--app-version", getAppVersion().get());
@@ -245,7 +201,6 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getAppName().isPresent()) spec.args("--name", getAppName().get());
             spec.args("--dest", getDest().get());
             if (getVendor().isPresent()) spec.args("--vendor", getVendor().get());
-            if (getVerbose().getOrElse(false)) spec.args("--verbose");
             if (getRuntimeImage().isPresent()) spec.args("--runtime-image", getRuntimeImage().get());
             if (getInput().isPresent()) spec.args("--input", getInput().get());
             getAppContent().forEach(f -> spec.args("--app-content", f.getAbsolutePath()));
@@ -271,7 +226,23 @@ public abstract class JpackageTask extends JDKToolTask {
             if (getLauncherAsService().getOrElse(false)) spec.args("--launcher-as-service");
 
             if (getPlatformOptions().isPresent()) spec.getArgumentProviders().add(getPlatformOptions().get());
-            if (getVerbose().getOrElse(false)) spec.args("--verbose");
+
+            if (getLogger().isInfoEnabled()) spec.args("--verbose");
+            spec.setIgnoreExitValue(true);
+            spec.setStandardOutput(out);
+            spec.setErrorOutput(err);
         });
+        if (result.getExitValue() != 0) {
+            throw new RuntimeException(err.toString().trim());
+        }
     }
+
+    @Inject
+    protected abstract ObjectFactory getObjects();
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 }
