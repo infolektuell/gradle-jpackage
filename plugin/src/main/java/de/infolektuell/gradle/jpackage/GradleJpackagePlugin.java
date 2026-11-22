@@ -11,6 +11,7 @@ import de.infolektuell.gradle.jpackage.tasks.platform.JpackageLinuxOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackageMacOSOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackagePlatformOptions;
 import de.infolektuell.gradle.jpackage.tasks.platform.JpackageWindowsOptions;
+import de.infolektuell.gradle.jpackage.toolchain.ToolFactory;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -25,7 +26,6 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.jvm.toolchain.JavaInstallationMetadata;
 import org.gradle.jvm.toolchain.JavaLauncher;
 import org.gradle.jvm.toolchain.JavaToolchainService;
@@ -38,13 +38,9 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Gradle plugin that creates native application installers using jpackage
- */
+/// Gradle plugin that creates native application installers using jpackage
 public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
-    /**
-     * The plugin ID
-     */
+    /// The plugin ID
     public static final String PLUGIN_NAME = "de.infolektuell.jpackage";
 
     @Inject
@@ -77,6 +73,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
 
         project.getPluginManager().withPlugin("java", javaPlugin -> {
             final JavaPluginExtension javaExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+            final var toolFactory = project.getObjects().newInstance(ToolFactory.class);
             final Provider<@NonNull JavaInstallationMetadata> installationMetadata = getJavaToolchainService().launcherFor(javaExtension.getToolchain())
                 .orElse(getJavaToolchainService().launcherFor(spec -> {
                 }))
@@ -89,13 +86,14 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                 final FileCollection nonModules = s.getRuntimeClasspath().minus(modules);
 
                 final Provider<@NotNull RegularFile> mainJar = project.getTasks().named(s.getJarTaskName(), Jar.class).flatMap(AbstractArchiveTask::getArchiveFile);
-                final TaskProvider<@NonNull JdepsTask> jdepsTask = project.getTasks().register(s.getTaskName("find", "moduleDeps"), JdepsTask.class, task -> {
+                final var jdepsTask = project.getTasks().register(s.getTaskName("find", "moduleDeps"), JdepsTask.class, task -> {
                     task.setGroup("application");
                     task.setDescription("Analyzes the source set for required modules");
-                    task.getMetadata().convention(installationMetadata);
-                    task.getClassPath().from(nonModules);
-                    task.getModulePath().from(modules);
-                    task.getModule().convention(jpackageExtension.getLauncher().getMainModule());
+                    task.getJdepsTool().convention(toolFactory.getJdepsToolFor(javaExtension.getToolchain()));
+                    final var modulePath = project.getConfigurations().named(s.getRuntimeClasspathConfigurationName()).map(c -> c.filter(Modules::isModule));
+                    task.getModulePath().from(modulePath);
+                    final var classpath = project.getConfigurations().named(s.getRuntimeClasspathConfigurationName()).zip(modulePath, FileCollection::minus);
+                    task.getClassPath().from(classpath);
                     task.getSource().from(mainJar);
                     task.getRecursive().convention(true);
                     task.getPrintModuleDeps().convention(true);
