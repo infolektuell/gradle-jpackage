@@ -8,6 +8,6 @@ import org.gradle.api.tasks.PathSensitivity;
 
 public interface Launcher extends Named {
     @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     RegularFileProperty getFile();
 }

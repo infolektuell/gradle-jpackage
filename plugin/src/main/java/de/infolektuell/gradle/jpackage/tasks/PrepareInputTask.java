@@ -14,11 +14,8 @@ import javax.inject.Inject;
 
 @DisableCachingByDefault
 public abstract class PrepareInputTask extends DefaultTask {
-    @Inject
-    protected abstract FileSystemOperations getFileSystemOperations();
-
     @InputFile
-    @PathSensitive(PathSensitivity.RELATIVE)
+    @PathSensitive(PathSensitivity.NONE)
     public abstract RegularFileProperty getMainJar();
 
     @InputFiles
@@ -41,4 +38,7 @@ public abstract class PrepareInputTask extends DefaultTask {
             spec.into(getDestination());
         });
     }
+
+    @Inject
+    protected abstract FileSystemOperations getFileSystemOperations();
 }

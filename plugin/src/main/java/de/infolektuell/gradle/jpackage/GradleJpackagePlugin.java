@@ -22,7 +22,6 @@ import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.plugins.JavaApplication;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Jar;
 import org.jspecify.annotations.NonNull;
@@ -52,9 +51,9 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
         final JpackageExtension jpackageExtension = project.getExtensions().create(JpackageExtension.EXTENSION_NAME, JpackageExtension.class);
         jpackageExtension.metadata(data -> {
             data.getName().convention(project.getName());
-            data.getVersion().convention(project.getVersion().toString());
-            data.getDescription().convention(project.getDescription());
-            data.getVendor().convention(project.getGroup().toString());
+            data.getVersion().convention(project.getProviders().provider(() -> project.getVersion().toString()));
+            data.getDescription().convention(project.getProviders().provider(project::getDescription));
+            data.getVendor().convention(project.getProviders().provider(() -> project.getGroup().toString()));
         });
         jpackageExtension.getLinux().getPackageName().convention(jpackageExtension.getCommon().getPackageName());
         jpackageExtension.getMac().getPackageName().convention(jpackageExtension.getCommon().getPackageName());
@@ -115,9 +114,8 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                     jpackageExtension.getLauncher().getMainClass().convention(application.getMainClass());
                     jpackageExtension.getMetadata().getName().convention(project.getProviders().provider(application::getApplicationName));
                     jpackageExtension.getLauncher().getJavaOptions().convention(project.getProviders().provider(application::getApplicationDefaultJvmArgs));
-                    javaExtension.manifest().getAttributes().put("Main-Class", jpackageExtension.getLauncher().getMainClass());
 
-                    final TaskProvider<@NonNull PrepareInputTask> prepareInputTask = project.getTasks().register(s.getTaskName("copy", "jpackageInput"), PrepareInputTask.class, task -> {
+                    final var prepareInputTask = project.getTasks().register(s.getTaskName("copy", "jpackageInput"), PrepareInputTask.class, task -> {
                         task.getSource().from(nonModules);
                         task.getMainJar().convention(mainJar);
                         task.getModule().convention(application.getMainModule());
@@ -134,7 +132,7 @@ public abstract class GradleJpackagePlugin implements Plugin<@NonNull Project> {
                         task.getVendor().convention(jpackageExtension.getMetadata().getVendor());
                     });
 
-                    final TaskProvider<@NonNull JpackageTask> appImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
+                    final var appImageTask = project.getTasks().register("appImage", JpackageTask.class, task -> {
                         task.setGroup("application");
                         task.setDescription("Generates a native app image");
                         task.getType().convention("app-image");
