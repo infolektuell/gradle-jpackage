@@ -3,11 +3,6 @@ plugins {
     id("de.infolektuell.jpackage")
 }
 
-repositories {
-    // Use Maven Central for resolving dependencies.
-    mavenCentral()
-}
-
 dependencies {
     // This dependency is used by the application.
     implementation(libs.guava)
